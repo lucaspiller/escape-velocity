@@ -15,10 +15,15 @@ var worldClass = $.Class({
   },
 
   draw: function(ctx) {
+    var startX = camera - 1;
+    var endX = camera + WIDTH + 2;
+
+    // world lines
     ctx.beginPath();
     ctx.moveTo(0, HEIGHT);
-    for(x = -1; x < WIDTH + 1; x++) {
-      ctx.lineTo(x, this.height(x + camera));
+    for(x = startX; x < endX + 1; x++) {
+      var height = this.height(x);
+      ctx.lineTo(x - camera, height);
     }
     ctx.lineTo(WIDTH, HEIGHT);
     ctx.closePath();
@@ -50,8 +55,8 @@ var ballClass = $.Class({
     var ay = gravity;
 
     // world collision
-    if ((this.y + 10) > world.height(Math.round(this.x))) {
-      var newAngle = world.angle(Math.round(this.x));
+    if ((this.y + 10) > world.height(this.x)) {
+      var newAngle = world.angle(this.x);
       var angleDiff = (this.angle - newAngle) * 0.75;
       this.v = this.v * Math.cos(angleDiff);
       this.angle = newAngle;
@@ -59,7 +64,7 @@ var ballClass = $.Class({
       this.dx = this.v * Math.cos(this.angle);
       this.dy = this.v * Math.sin(this.angle);
 
-      this.y = world.height(Math.round(this.x)) - 10;
+      this.y = world.height(this.x) - 10;
     }
 
     this.dx += ax;
@@ -86,6 +91,7 @@ var ballClass = $.Class({
     ctx.closePath();
     ctx.fill();
 
+    /*
     var angle = world.angle(Math.round(this.x));
     ctx.fillText(angle * (180/Math.PI), 10, 10);
     ctx.fillText(this.dx, 160, 10);
@@ -93,6 +99,7 @@ var ballClass = $.Class({
     ctx.fillText(Math.round(this.v), 460, 10);
     ctx.fillText(gravity, 610, 10);
     ctx.fillText(this.angle, 760, 10);
+    */
   }
 });
 
@@ -103,24 +110,33 @@ function init() {
   ctx = $('#canvas')[0].getContext("2d");
   WIDTH = $('#canvas').width();
   HEIGHT = $('#canvas').height();
-  $(document).keydown(function() {
-    gravity = HIGH_GRAVITY;
+  $(document).keydown(function(evt) {
+    if (evt.keyCode == 32) {
+      gravity = HIGH_GRAVITY;
+    }
   });
-  $(document).keyup(function() {
-    gravity = LOW_GRAVITY;
+  $(document).keyup(function(evt) {
+    if (evt.keyCode == 32) {
+      gravity = LOW_GRAVITY;
+    }
   });
-  setInterval(loop, 16);
+  setInterval(physics, 16);
+  setInterval(render, 16);
 }
 
-function loop() {
+function render() {
   if (ball.x - camera > (WIDTH / 3))
   {
     camera += (ball.x - camera) - (WIDTH / 3);
   }
 
-  ctx.clearRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8);';
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillStyle = 'rgba(0, 0, 0, 1);';
   ball.draw(ctx);
   world.draw(ctx);
+}
 
+function physics() {
   ball.updatePhysics();
 }
