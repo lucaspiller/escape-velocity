@@ -109,6 +109,12 @@ function init() {
   $(document).keyup(function() {
     gravity = LOW_GRAVITY;
   });
+  $(document).bind("touchstart",function(event){
+    gravity = HIGH_GRAVITY;
+  });
+  $(document).bind("touchend",function(event){
+    gravity = LOW_GRAVITY;
+  });
   setInterval(loop, 16);
 }
 
