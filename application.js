@@ -120,6 +120,12 @@ function init() {
       gravity = LOW_GRAVITY;
     }
   });
+  $(document).bind("touchstart",function(event){
+    gravity = HIGH_GRAVITY;
+  });
+  $(document).bind("touchend",function(event){
+    gravity = LOW_GRAVITY;
+  });
   setInterval(physics, 16);
   setInterval(render, 16);
 }
