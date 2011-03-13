@@ -173,7 +173,7 @@ var ballClass = $.Class({
     // world collision
     if ((this.y + 10) > world.height(this.x)) {
       var newAngle = world.angle(this.x);
-      var angleDiff = (this.angle - newAngle) * 0.9;
+      var angleDiff = (this.angle - newAngle) * 0.75;
       this.v = this.v * Math.cos(angleDiff);
       this.angle = newAngle;
 
@@ -188,9 +188,6 @@ var ballClass = $.Class({
 
     this.angle = Math.atan(this.dy / this.dx);
     this.v = Math.sqrt(Math.pow(this.dx, 2) + Math.pow(this.dy, 2));
-
-    // air resistance
-    this.v -= 0.5;
 
     // minimum speed
     if (this.v < 75) {
