@@ -6,13 +6,14 @@ var ctx;
 var WIDTH;
 var HEIGHT;
 var HIGH_GRAVITY = 15;
-var LOW_GRAVITY = 4;
+var LOW_GRAVITY = 6;
 var AMPLITUDE = 200;
 var MIN_WIDTH = 200;
 var MAX_WIDTH = 500;
-var MIN_DIFF = 0.7;
+var SMOOTHNESS_AMPLITUDE = 0.2;
 var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
+var WORLD_TAG = 1234;
 var camera = 0;
 
 var worldClass = $.Class({
@@ -33,12 +34,14 @@ var worldClass = $.Class({
       x = x + target;
     }
 
+    var smoothness = this.rng.random();
+    console.log(smoothness);
     var last = 1;
     var t = 0;
     for(i = 0; i < keypoints.length; i++)
     {
       var target = last;
-      while(Math.abs(target - last) < 0.5) {
+      while((Math.abs(target - last) < (smoothness - SMOOTHNESS_AMPLITUDE)) || (Math.abs(target - last) > (smoothness + SMOOTHNESS_AMPLITUDE))) {
         target = (this.rng.random() - 0.5) * 2;
       }
 
@@ -176,7 +179,7 @@ var ballClass = $.Class({
 });
 
 var ball = new ballClass(50, 50, 30, -30);
-var world = new worldClass(1235);
+var world = new worldClass(WORLD_TAG);
 
 function init() {
   ctx = $('#canvas')[0].getContext("2d");
