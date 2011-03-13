@@ -5,15 +5,16 @@ $(document).ready(function() {
 var ctx;
 var WIDTH;
 var HEIGHT;
-var HIGH_GRAVITY = 15;
-var LOW_GRAVITY = 6;
+var HIGH_GRAVITY = 20;
+var LOW_GRAVITY = 5;
 var AMPLITUDE = 200;
 var MIN_WIDTH = 200;
 var MAX_WIDTH = 500;
 var SMOOTHNESS_AMPLITUDE = 0.2;
 var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
-var WORLD_TAG = 1234;
+//var WORLD_TAG = Math.round(Math.random() * 99999);
+var WORLD_TAG = 11381;
 var COIN_PROBABILITY = 0.5;
 var BOOSTER_PROBABILITY = 0.1;
 var camera = 0;
@@ -258,6 +259,7 @@ function render() {
   world.draw(ctx);
 
   ctx.fillText(score, 25, HEIGHT - 25);
+  ctx.fillText("World: " + WORLD_TAG, 75, HEIGHT - 25);
 }
 
 function physics() {
