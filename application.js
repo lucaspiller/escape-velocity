@@ -13,9 +13,10 @@ var MAX_WIDTH = 500;
 var SMOOTHNESS_AMPLITUDE = 0.2;
 var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
-var WORLD_TAG = 11381;
+var WORLD_TAG = 53775
 var COIN_PROBABILITY = 0.5;
 var BOOSTER_PROBABILITY = 0.1;
+var STARTED = false;
 var camera = 0;
 var score = 0;
 
@@ -225,6 +226,11 @@ function init() {
   });
   $(document).keyup(function(evt) {
     if (evt.keyCode == 32) {
+      if (!STARTED)
+      {
+        setInterval(physics, 16);
+        STARTED = true;
+      }
       gravity = LOW_GRAVITY;
     }
     if (evt.keyCode == 82) {
@@ -238,9 +244,13 @@ function init() {
     gravity = HIGH_GRAVITY;
   });
   $(document).bind("touchend",function(event){
+    if (!STARTED)
+    {
+      setInterval(physics, 16);
+      STARTED = true;
+    }
     gravity = LOW_GRAVITY;
   });
-  setInterval(physics, 16);
   setInterval(render, 16);
 }
 
@@ -253,11 +263,26 @@ function render() {
   ctx.fillStyle = 'rgba(255, 255, 255, 0.8);';
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.fillStyle = 'rgba(0, 0, 0, 1);';
-  ball.draw(ctx);
   world.draw(ctx);
 
   ctx.fillText(score, 25, HEIGHT - 25);
   ctx.fillText("World: " + world.tag, 75, HEIGHT - 25);
+
+  if (STARTED) {
+    ball.draw(ctx);
+  } else {
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4);';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+    ctx.font = "26px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Spacebar / Touch to Start", WIDTH / 2, HEIGHT / 5);
+    ctx.font = "16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("R for new world" , WIDTH / 2, (HEIGHT / 5) + 25);
+    ctx.restore();
+  }
 }
 
 function physics() {
