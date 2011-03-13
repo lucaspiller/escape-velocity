@@ -220,6 +220,7 @@ var ballClass = $.Class({
 var ball = new ballClass(50, 50, 30, -30);
 var world = new worldClass(WORLD_TAG);
 var timer;
+var sounds;
 
 function init() {
   ctx = $('#canvas')[0].getContext("2d");
@@ -259,6 +260,12 @@ function init() {
       restart(world.tag);
       return false;
   });
+  sounds = new Array();
+  for (i = 1; i <= 9; i++)
+  {
+    var sound = new Audio("sounds/chime0" + i + ".ogg");
+    sounds.push(sound);
+  }
   setInterval(render, 16);
 }
 
@@ -302,16 +309,28 @@ function physics() {
       if (world.coins[Math.round(x)] == C_COIN) {
         score += 100;
         world.coins[Math.round(x)] = C_NONE;
+        playCoinSound();
       } else if (world.coins[Math.round(x)] == C_BOOSTER) {
         score += 100;
         world.coins[Math.round(x)] = C_NONE;
         ball.v += 300;
+        playCoinSound();
       }
     }
   }
   if (ball.x > world.endpoint) {
     finish();
   }
+}
+
+function playCoinSound() {
+  var i = Math.round((ball.v / 1500) * 10);
+  if (i < 0)
+    i = 0;
+  if (i > 8)
+    i = 8;
+  var sound = new Audio(sounds[i].src);
+  sound.play();
 }
 
 function restart(tag) {
