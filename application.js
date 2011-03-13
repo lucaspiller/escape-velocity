@@ -14,6 +14,7 @@ var SMOOTHNESS_AMPLITUDE = 0.2;
 var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
 var WORLD_TAG = 1234;
+var COIN_PROBABILITY = 0.5;
 var camera = 0;
 var score = 0;
 
@@ -36,7 +37,6 @@ var worldClass = $.Class({
     }
 
     var smoothness = this.rng.random();
-    console.log(smoothness);
     var last = 1;
     var t = 0;
     for(i = 0; i < keypoints.length; i++)
@@ -85,6 +85,21 @@ var worldClass = $.Class({
       }
       last = target;
     }
+
+    this.coins = new Array();
+    for (i = 0; i < keypoints.length; i++) {
+      if (this.rng.random() < COIN_PROBABILITY)
+      {
+        if (this.points[keypoints[i]] < this.points[keypoints[i + 1]])
+        {
+          for (x = keypoints[i] + 50; x < (keypoints[i + 2] - 50); x += 50)
+          {
+            this.coins[x] = true;
+          }
+        }
+      }
+      i++;
+    }
   },
 
   draw: function(ctx) {
@@ -93,13 +108,23 @@ var worldClass = $.Class({
 
     ctx.beginPath();
     ctx.moveTo(-1, HEIGHT);
-    for(x = startX; x < endX + 1; x++) {
+    for(x = startX; x < endX; x++) {
       var height = this.height(x);
       ctx.lineTo(x - camera, height);
     }
     ctx.lineTo(WIDTH + 1, HEIGHT);
     ctx.closePath();
     ctx.stroke();
+
+    for (x = startX; x < endX; x++) {
+      if (this.coins[Math.round(x)] == true) {
+        var height = this.height(x) - 10;
+        ctx.beginPath();
+        ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
   },
 
   height: function(point) {
@@ -226,4 +251,13 @@ function render() {
 function physics() {
   ball.updatePhysics();
   score += Math.round(ball.v / 100);
+  for (x = ball.x - 10; x < ball.x + 10; x++) {
+    if (world.coins[Math.round(x)] == true) {
+      if (ball.y > world.height(x) - 20)
+      {
+        score += 100;
+        world.coins[Math.round(x)] = false;
+      }
+    }
+  }
 }
