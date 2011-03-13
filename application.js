@@ -7,31 +7,103 @@ var WIDTH;
 var HEIGHT;
 var HIGH_GRAVITY = 15;
 var LOW_GRAVITY = 4;
+var AMPLITUDE = 200;
+var MIN_WIDTH = 200;
+var MAX_WIDTH = 500;
+var MIN_DIFF = 0.7;
+var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
 var camera = 0;
 
 var worldClass = $.Class({
-  init: function() {
+  init: function(seed) {
+    this.rng = new MersenneTwister(seed);
+    this.points = new Array();
+  },
+
+  generate: function() {
+    var keypoints = new Array();
+    for(x = 0; x < LENGTH; x++)
+    {
+      keypoints.push(x);
+      var target = Math.round(this.rng.random() * MAX_WIDTH); if (target < MIN_WIDTH)
+      {
+        target = MIN_WIDTH;
+      }
+      x = x + target;
+    }
+
+    var last = 1;
+    var t = 0;
+    for(i = 0; i < keypoints.length; i++)
+    {
+      var target = last;
+      while(Math.abs(target - last) < 0.5) {
+        target = (this.rng.random() - 0.5) * 2;
+      }
+
+      var a;
+      var shift;
+      a = (Math.abs(last) / 2) + (Math.abs(target) / 2);
+      if (target > last)
+      {
+        if (last < 0 && target < 0) {
+          a = Math.abs(last) - a;
+          shift = Math.abs(last) - a;
+        } else {
+          if (last > 0 && target > 0) {
+            a = (target - last) / 2;
+          }
+          shift = (a - Math.abs(target));
+        }
+      } else {
+        shift = -(a - Math.abs(target));
+        if (last < 0 && target < 0) {
+          a = -(Math.abs(last) - a);
+          shift = (Math.abs(last) + a);
+        } else if (last > 0 && target > 0) {
+          a = (last - target) / 2;
+          shift = -(Math.abs(target) + a);
+        }
+      }
+
+      for(x = keypoints[i]; x < keypoints[i + 1]; x++) {
+        var parts = keypoints[i + 1] - keypoints[i];
+        var part = x - keypoints[i];
+        var t;
+        if (target > last)
+        {
+          t = (Math.PI / parts) * part;
+        } else {
+          t = ((Math.PI / parts) * part) + Math.PI;
+        }
+        this.points[x] = (Math.cos(t) * a) + shift;
+      }
+      last = target;
+    }
   },
 
   draw: function(ctx) {
     var startX = camera - 1;
     var endX = camera + WIDTH + 2;
 
-    // world lines
     ctx.beginPath();
-    ctx.moveTo(0, HEIGHT);
+    ctx.moveTo(-1, HEIGHT);
     for(x = startX; x < endX + 1; x++) {
       var height = this.height(x);
       ctx.lineTo(x - camera, height);
     }
-    ctx.lineTo(WIDTH, HEIGHT);
+    ctx.lineTo(WIDTH + 1, HEIGHT);
     ctx.closePath();
     ctx.stroke();
   },
 
   height: function(point) {
-    return (Math.sin(Math.PI * (point / 180)) * (HEIGHT / 8)) + (HEIGHT / 16) * 12;
+    rpoint = Math.round(point);
+    if (this.points[rpoint] == undefined)
+      return HEIGHT;
+    else
+      return (HEIGHT - 50 - (AMPLITUDE / 2)) + (this.points[rpoint] * (AMPLITUDE / 2));
   },
 
   angle: function(point) {
@@ -103,13 +175,14 @@ var ballClass = $.Class({
   }
 });
 
-var ball = new ballClass(250, 200, 30, -30);
-var world = new worldClass();
+var ball = new ballClass(50, 50, 30, -30);
+var world = new worldClass(1235);
 
 function init() {
   ctx = $('#canvas')[0].getContext("2d");
   WIDTH = $('#canvas').width();
   HEIGHT = $('#canvas').height();
+  world.generate();
   $(document).keydown(function(evt) {
     if (evt.keyCode == 32) {
       gravity = HIGH_GRAVITY;
@@ -118,6 +191,14 @@ function init() {
   $(document).keyup(function(evt) {
     if (evt.keyCode == 32) {
       gravity = LOW_GRAVITY;
+    }
+    if (evt.keyCode == 39) {
+      camera += 300;
+      console.log(camera);
+    }
+    if (evt.keyCode == 37) {
+      camera -= 300;
+      console.log(camera);
     }
   });
   $(document).bind("touchstart",function(event){
