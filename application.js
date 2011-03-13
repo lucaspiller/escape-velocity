@@ -13,7 +13,6 @@ var MAX_WIDTH = 500;
 var SMOOTHNESS_AMPLITUDE = 0.2;
 var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
-//var WORLD_TAG = Math.round(Math.random() * 99999);
 var WORLD_TAG = 11381;
 var COIN_PROBABILITY = 0.5;
 var BOOSTER_PROBABILITY = 0.1;
@@ -25,9 +24,11 @@ var C_COIN = 1;
 var C_BOOSTER = 2;
 
 var worldClass = $.Class({
-  init: function(seed) {
-    this.rng = new MersenneTwister(seed);
+  init: function(tag) {
+    this.tag = tag;
+    this.rng = new MersenneTwister(tag);
     this.points = new Array();
+    this.coins = new Array();
   },
 
   generate: function() {
@@ -92,7 +93,6 @@ var worldClass = $.Class({
       last = target;
     }
 
-    this.coins = new Array();
     for (i = 0; i < keypoints.length; i++) {
       if (this.points[keypoints[i]] < this.points[keypoints[i + 1]])
       {
@@ -227,13 +227,11 @@ function init() {
     if (evt.keyCode == 32) {
       gravity = LOW_GRAVITY;
     }
-    if (evt.keyCode == 39) {
-      camera += 300;
-      console.log(camera);
-    }
-    if (evt.keyCode == 37) {
-      camera -= 300;
-      console.log(camera);
+    if (evt.keyCode == 82) {
+      world = new worldClass(Math.round(Math.random() * 99999));
+      world.generate();
+      ball = new ballClass(50, 50, 30, -30);
+      camera = 0;
     }
   });
   $(document).bind("touchstart",function(event){
@@ -259,7 +257,7 @@ function render() {
   world.draw(ctx);
 
   ctx.fillText(score, 25, HEIGHT - 25);
-  ctx.fillText("World: " + WORLD_TAG, 75, HEIGHT - 25);
+  ctx.fillText("World: " + world.tag, 75, HEIGHT - 25);
 }
 
 function physics() {
