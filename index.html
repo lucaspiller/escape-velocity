@@ -1,17 +1,41 @@
 <html>
   <head>
-    <title>Teeny Birds</title>
+    <title>The-Game-Yet-To-Be-Named</title>
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript" src="jquery.class.js"></script>
     <script type="text/javascript" src="mersenne-twister.js"></script>
     <script type="text/javascript" src="application.js"></script>
     <style>
+      #content {
+        width: 1000px;
+        margin: 50px auto;
+        background-color: #DAE8EC;
+        -moz-border-radius: 10px;
+        -webkit-border-radius: 10px;
+        border: 2px solid #B8CB99;
+        padding: 10px;
+      }
       canvas {
-        border: 1px solid #000;
+        border: 1px solid #B8CB99;
+      }
+      body {
+        background-color: rgb(243, 233, 192);
+        font: 14px Arial;
+      }
+      #footer {
+        margin: 0 auto;
+        text-align: center;
+        font-size: 10px;
+        color: #999;
       }
     </style>
   </head>
   <body>
-    <canvas id="canvas" width="1000" height="400"></canvas>
+    <div id="content">
+      <canvas id="canvas" width="1000" height="400"></canvas>
+    </div>
+    <div id="footer">
+      &copy; 2011 Luca Spiller
+    </div>
   </body>
 </html>
