@@ -94,6 +94,12 @@ var worldClass = $.Class({
       last = target;
     }
 
+    // extra padding so we don't get a steep dropoff
+    this.endpoint = keypoints[keypoints.length - 1];
+    for (x = this.endpoint; x < (this.endpoint + 10000); x++) {
+      this.points[x] = this.points[this.endpoint - 1];
+    }
+
     for (i = 0; i < keypoints.length; i++) {
       if (this.points[keypoints[i]] < this.points[keypoints[i + 1]])
       {
@@ -213,6 +219,7 @@ var ballClass = $.Class({
 
 var ball = new ballClass(50, 50, 30, -30);
 var world = new worldClass(WORLD_TAG);
+var timer;
 
 function init() {
   ctx = $('#canvas')[0].getContext("2d");
@@ -228,16 +235,13 @@ function init() {
     if (evt.keyCode == 32) {
       if (!STARTED)
       {
-        setInterval(physics, 16);
+        timer = setInterval(physics, 16);
         STARTED = true;
       }
       gravity = LOW_GRAVITY;
     }
     if (evt.keyCode == 82) {
-      world = new worldClass(Math.round(Math.random() * 99999));
-      world.generate();
-      ball = new ballClass(50, 50, 30, -30);
-      camera = 0;
+      restart(Math.round(Math.random() * 99999));
     }
   });
   $(document).bind("touchstart",function(event){
@@ -246,10 +250,14 @@ function init() {
   $(document).bind("touchend",function(event){
     if (!STARTED)
     {
-      setInterval(physics, 16);
+      timer = setInterval(physics, 16);
       STARTED = true;
     }
     gravity = LOW_GRAVITY;
+  });
+  $('#retry-button').bind("click", function() {
+      restart(world.tag);
+      return false;
   });
   setInterval(render, 16);
 }
@@ -301,4 +309,35 @@ function physics() {
       }
     }
   }
+  if (ball.x > world.endpoint) {
+    finish();
+  }
+}
+
+function restart(tag) {
+  clearTimeout(timer);
+  STARTED = false;
+  $('#tada').hide();
+  world = new worldClass(tag);
+  world.generate();
+  ball = new ballClass(50, 50, 30, -30);
+  camera = 0;
+}
+
+function finish() {
+  clearInterval(timer);
+  $('#tweet-cont').children().remove();
+  var link = $( document.createElement('a') );
+  link.attr("data-text", "I just scored " + score + " points on world " + world.tag + ".")
+  link.attr("class", "twitter-share-button");
+  link.attr("href", "http://twitter.com/share");
+  link.attr("data-url", "http://bit.ly/fRgEdr");
+  link.attr("data-count", "none");
+  link.attr("data-via", "lucaspiller");
+  link.append("Tweet This");
+  $('#tweet-cont').append(link);
+  var tweetButton = new twttr.TweetButton($(link).get(0));
+  tweetButton.render();
+  $('#score').text(score);
+  $('#tada').show();
 }

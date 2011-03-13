@@ -3,6 +3,7 @@
     <title>The-Game-Yet-To-Be-Named</title>
     <script type="text/javascript" src="jquery.js"></script>
     <script type="text/javascript" src="jquery.class.js"></script>
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
     <script type="text/javascript" src="mersenne-twister.js"></script>
     <script type="text/javascript" src="application.js"></script>
     <style>
@@ -28,10 +29,40 @@
         font-size: 10px;
         color: #999;
       }
+      #tada {
+        width: 400px;
+        height: 200px;
+        left: 400px;
+        top: 130px;
+        position: absolute;
+        background-color: #DAE8EC;
+        -moz-border-radius: 10px;
+        -webkit-border-radius: 10px;
+        border: 2px solid #B8CB99;
+        padding: 20px;
+        text-align: center;
+      }
+      #score {
+        text-decoration: bold;
+      }
     </style>
   </head>
   <body>
     <div id="content">
+      <div id="tada" style="display: none">
+        <h1>That's it!</h1>
+        <p>
+        You scored
+        <span id="score">12345</span>
+        points!
+        </p>
+        <p id="tweet-cont">
+        </p>
+        <p>
+        <a href="#" id="retry-button">
+          Try again
+        </a>
+      </div>
       <canvas id="canvas" width="1000" height="400"></canvas>
     </div>
     <div id="footer">
