@@ -15,6 +15,7 @@ var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
 var WORLD_TAG = 1234;
 var camera = 0;
+var score = 0;
 
 var worldClass = $.Class({
   init: function(seed) {
@@ -165,16 +166,6 @@ var ballClass = $.Class({
     ctx.arc(this.x - camera, this.y, 10, 0, Math.PI*2, true);
     ctx.closePath();
     ctx.fill();
-
-    /*
-    var angle = world.angle(Math.round(this.x));
-    ctx.fillText(angle * (180/Math.PI), 10, 10);
-    ctx.fillText(this.dx, 160, 10);
-    ctx.fillText(this.dy, 310, 10);
-    ctx.fillText(Math.round(this.v), 460, 10);
-    ctx.fillText(gravity, 610, 10);
-    ctx.fillText(this.angle, 760, 10);
-    */
   }
 });
 
@@ -225,8 +216,11 @@ function render() {
   ctx.fillStyle = 'rgba(0, 0, 0, 1);';
   ball.draw(ctx);
   world.draw(ctx);
+
+  ctx.fillText(score, 25, HEIGHT - 25);
 }
 
 function physics() {
   ball.updatePhysics();
+  score += Math.round(ball.v / 100);
 }
