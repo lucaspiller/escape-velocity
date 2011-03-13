@@ -15,8 +15,13 @@ var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
 var WORLD_TAG = 1234;
 var COIN_PROBABILITY = 0.5;
+var BOOSTER_PROBABILITY = 0.1;
 var camera = 0;
 var score = 0;
+
+var C_NONE = 0;
+var C_COIN = 1;
+var C_BOOSTER = 2;
 
 var worldClass = $.Class({
   init: function(seed) {
@@ -88,14 +93,18 @@ var worldClass = $.Class({
 
     this.coins = new Array();
     for (i = 0; i < keypoints.length; i++) {
-      if (this.rng.random() < COIN_PROBABILITY)
+      if (this.points[keypoints[i]] < this.points[keypoints[i + 1]])
       {
-        if (this.points[keypoints[i]] < this.points[keypoints[i + 1]])
+        if (this.rng.random() < COIN_PROBABILITY)
         {
           for (x = keypoints[i] + 50; x < (keypoints[i + 2] - 50); x += 50)
           {
-            this.coins[x] = true;
+            this.coins[x] = C_COIN;
           }
+        }
+        else if (this.rng.random() < BOOSTER_PROBABILITY)
+        {
+          this.coins[keypoints[i + 1]] = C_BOOSTER;
         }
       }
       i++;
@@ -117,12 +126,18 @@ var worldClass = $.Class({
     ctx.stroke();
 
     for (x = startX; x < endX; x++) {
-      if (this.coins[Math.round(x)] == true) {
+      if (this.coins[Math.round(x)] == C_COIN) {
         var height = this.height(x) - 10;
         ctx.beginPath();
         ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
         ctx.closePath();
         ctx.fill();
+      } else if(this.coins[Math.round(x)] == C_BOOSTER) {
+        var height = this.height(x) - 10;
+        ctx.beginPath();
+        ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
+        ctx.closePath();
+        ctx.stroke();
       }
     }
   },
@@ -252,11 +267,15 @@ function physics() {
   ball.updatePhysics();
   score += Math.round(ball.v / 100);
   for (x = ball.x - 10; x < ball.x + 10; x++) {
-    if (world.coins[Math.round(x)] == true) {
-      if (ball.y > world.height(x) - 20)
-      {
+    if (ball.y > world.height(x) - 20)
+    {
+      if (world.coins[Math.round(x)] == C_COIN) {
         score += 100;
-        world.coins[Math.round(x)] = false;
+        world.coins[Math.round(x)] = C_NONE;
+      } else if (world.coins[Math.round(x)] == C_BOOSTER) {
+        score += 100;
+        world.coins[Math.round(x)] = C_NONE;
+        ball.v += 300;
       }
     }
   }
