@@ -229,7 +229,6 @@ var TinyWigs = {
   })
 };
 
-
 var player = new TinyWigs.Player(50, 50, 30, -30);
 var world;
 var timer;
@@ -279,7 +278,7 @@ function init() {
     var sound = new Audio("sounds/chime0" + i + ".ogg");
     sounds.push(sound);
   }
-  setInterval(render, 20);
+  setInterval(render, 16);
 }
 
 function render() {
