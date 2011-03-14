@@ -249,13 +249,13 @@ var TinyWigs = {
         this.camera.x += (this.focus.x - this.camera.x) - (WIDTH / 3);
       }
 
-      if (this.focus.y - this.camera.y < (HEIGHT / 5))
+      if (this.focus.y - this.camera.y < (HEIGHT / 10))
       {
-        this.camera.y -= ((HEIGHT / 5) - (this.focus.y - this.camera.y)) / 8;
+        this.camera.y -= ((HEIGHT / 10) - (this.focus.y - this.camera.y)) / 16;
       }
-      else if (this.focus.y - this.camera.y > ((HEIGHT / 5) * 4))
+      else if (this.focus.y - this.camera.y > (HEIGHT / 10) && this.camera.y < 0)
       {
-        this.camera.y += ((this.focus.y - this.camera.y) - ((HEIGHT / 5) * 4)) / 8;
+        this.camera.y += ((this.focus.y - this.camera.y) - (HEIGHT / 10)) / 8;
       }
 
       for(i = 0; i < this.children.length; i++) {
