@@ -1,4 +1,3 @@
-var ctx;
 var WIDTH;
 var HEIGHT;
 var HIGH_GRAVITY = 20;
@@ -13,7 +12,6 @@ var WORLD_TAG = 53775
 var COIN_PROBABILITY = 0.5;
 var BOOSTER_PROBABILITY = 0.1;
 var STARTED = false;
-var camera = 0;
 var score = 0;
 
 var C_NONE = 0;
@@ -130,15 +128,15 @@ var TinyWigs = {
       this.rng = new MersenneTwister(tag);
     },
 
-    draw: function(ctx) {
-      var startX = camera - 1;
-      var endX = camera + WIDTH + 2;
+    draw: function(ctx, camera) {
+      var startX = camera.x - 1;
+      var endX = camera.x + WIDTH + 2;
 
       ctx.beginPath();
       ctx.moveTo(-1, HEIGHT);
       for(x = startX; x < endX; x++) {
         var height = this.height(x);
-        ctx.lineTo(x - camera, height);
+        ctx.lineTo(x - camera.x, height - camera.y);
       }
       ctx.lineTo(WIDTH + 1, HEIGHT);
       ctx.closePath();
@@ -148,13 +146,13 @@ var TinyWigs = {
         if (this.coins[Math.round(x)] == C_COIN) {
           var height = this.height(x) - 10;
           ctx.beginPath();
-          ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
+          ctx.arc(x - camera.x, height - camera.y, 5, 0, Math.PI*2, true);
           ctx.closePath();
           ctx.fill();
         } else if(this.coins[Math.round(x)] == C_BOOSTER) {
           var height = this.height(x) - 10;
           ctx.beginPath();
-          ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
+          ctx.arc(x - camera.x, height - camera.y, 5, 0, Math.PI*2, true);
           ctx.closePath();
           ctx.stroke();
         }
@@ -220,16 +218,61 @@ var TinyWigs = {
       this.y += (this.dy / 100);
     },
 
-    draw: function(ctx) {
+    draw: function(ctx, camera) {
       ctx.beginPath();
-      ctx.arc(this.x - camera, this.y, 10, 0, Math.PI*2, true);
+      ctx.arc(this.x - camera.x, this.y - camera.y, 10, 0, Math.PI*2, true);
       ctx.closePath();
       ctx.fill();
+    }
+  }),
+
+  Camera: $.Class({
+    init: function() {
+      this.x = 0;
+      this.y = 0;
+    }
+  }),
+
+  Renderer: $.Class({
+    init: function(ctx, focus) {
+      this.children = new Array();
+      this.camera = new TinyWigs.Camera();
+      this.ctx = ctx
+      this.focus = focus;
+    },
+
+    render: function() {
+      this.clear();
+
+      if (this.focus.x - this.camera.x > (WIDTH / 3))
+      {
+        this.camera.x += (this.focus.x - this.camera.x) - (WIDTH / 3);
+      }
+
+      if (this.focus.y - this.camera.y < (HEIGHT / 5))
+      {
+        this.camera.y -= ((HEIGHT / 5) - (this.focus.y - this.camera.y)) / 8;
+      }
+      else if (this.focus.y - this.camera.y > ((HEIGHT / 5) * 4))
+      {
+        this.camera.y += ((this.focus.y - this.camera.y) - ((HEIGHT / 5) * 4)) / 8;
+      }
+
+      for(i = 0; i < this.children.length; i++) {
+        this.children[i].draw(this.ctx, this.camera);
+      }
+    },
+
+    clear: function() {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8);';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.fillStyle = 'rgba(0, 0, 0, 1);';
     }
   })
 };
 
-var player = new TinyWigs.Player(50, 50, 30, -30);
+var renderer;
+var player;
 var world;
 var timer;
 var sounds;
@@ -238,7 +281,6 @@ function init() {
   ctx = $('#canvas')[0].getContext("2d");
   WIDTH = $('#canvas').width();
   HEIGHT = $('#canvas').height();
-  world = new TinyWigs.WorldGenerator().generate(WORLD_TAG);
   $(document).keydown(function(evt) {
     if (evt.keyCode == 32) {
       gravity = HIGH_GRAVITY;
@@ -254,7 +296,7 @@ function init() {
       gravity = LOW_GRAVITY;
     }
     if (evt.keyCode == 82) {
-      restart(Math.round(Math.random() * 99999));
+      resetGame(Math.round(Math.random() * 99999));
     }
   });
   $(document).bind("touchstart",function(event){
@@ -269,7 +311,7 @@ function init() {
     gravity = LOW_GRAVITY;
   });
   $('#retry-button').bind("click", function() {
-      restart(world.tag);
+      resetGame(world.tag);
       return false;
   });
   sounds = new Array();
@@ -278,26 +320,49 @@ function init() {
     var sound = new Audio("sounds/chime0" + i + ".ogg");
     sounds.push(sound);
   }
+  resetGame(WORLD_TAG);
   setInterval(render, 16);
 }
 
-function render() {
-  if (player.x - camera > (WIDTH / 3))
-  {
-    camera += (player.x - camera) - (WIDTH / 3);
-  }
+function resetGame(tag) {
+  clearTimeout(timer);
+  STARTED = false;
+  $('#tada').hide();
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.8);';
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  ctx.fillStyle = 'rgba(0, 0, 0, 1);';
-  world.draw(ctx);
+  world = new TinyWigs.WorldGenerator().generate(tag);
+  player = new TinyWigs.Player(50, 50, 30, -30);
+  renderer = new TinyWigs.Renderer(ctx, player);
+  renderer.children.push(world);
+  renderer.children.push(player);
+  camera = 0;
+  score = 0;
+}
+
+function finish() {
+  clearInterval(timer);
+  $('#tweet-cont').children().remove();
+  var link = $( document.createElement('a') );
+  link.attr("data-text", "I just scored " + score + " points on world " + world.tag + ".")
+  link.attr("class", "twitter-share-button");
+  link.attr("href", "http://twitter.com/share");
+  link.attr("data-url", "http://bit.ly/fRgEdr");
+  link.attr("data-count", "none");
+  link.attr("data-via", "lucaspiller");
+  link.append("Tweet This");
+  $('#tweet-cont').append(link);
+  var tweetButton = new twttr.TweetButton($(link).get(0));
+  tweetButton.render();
+  $('#score').text(score);
+  $('#tada').show();
+}
+
+function render() {
+  renderer.render();
 
   ctx.fillText(score, 25, HEIGHT - 25);
   ctx.fillText("World: " + world.tag, 75, HEIGHT - 25);
 
-  if (STARTED) {
-    player.draw(ctx);
-  } else {
+  if (!STARTED) {
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4);';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -343,34 +408,6 @@ function playCoinSound() {
     i = 8;
   var sound = new Audio(sounds[i].src);
   sound.play();
-}
-
-function restart(tag) {
-  clearTimeout(timer);
-  STARTED = false;
-  $('#tada').hide();
-  world = new TinyWigs.WorldGenerator().generate(tag);
-  player = new TinyWigs.Player(50, 50, 30, -30);
-  camera = 0;
-  score = 0;
-}
-
-function finish() {
-  clearInterval(timer);
-  $('#tweet-cont').children().remove();
-  var link = $( document.createElement('a') );
-  link.attr("data-text", "I just scored " + score + " points on world " + world.tag + ".")
-  link.attr("class", "twitter-share-button");
-  link.attr("href", "http://twitter.com/share");
-  link.attr("data-url", "http://bit.ly/fRgEdr");
-  link.attr("data-count", "none");
-  link.attr("data-via", "lucaspiller");
-  link.append("Tweet This");
-  $('#tweet-cont').append(link);
-  var tweetButton = new twttr.TweetButton($(link).get(0));
-  tweetButton.render();
-  $('#score').text(score);
-  $('#tada').show();
 }
 
 $(document).ready(function() {
