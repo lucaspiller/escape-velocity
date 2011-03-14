@@ -1,7 +1,3 @@
-$(document).ready(function() {
-    init();
-});
-
 var ctx;
 var WIDTH;
 var HEIGHT;
@@ -24,201 +20,218 @@ var C_NONE = 0;
 var C_COIN = 1;
 var C_BOOSTER = 2;
 
-var worldClass = $.Class({
-  init: function(tag) {
-    this.tag = tag;
-    this.rng = new MersenneTwister(tag);
-    this.points = new Array();
-    this.coins = new Array();
-  },
+var TinyWigs = {
+  WorldGenerator: $.Class({
+    generate: function(tag) {
+      var world = new TinyWigs.World(tag);
+      this.generateLandscape(world);
+      return world;
+    },
 
-  generate: function() {
-    var keypoints = new Array();
-    for(x = 0; x < LENGTH; x++)
-    {
-      keypoints.push(x);
-      var target = Math.round(this.rng.random() * MAX_WIDTH); if (target < MIN_WIDTH)
+    generateLandscape: function(world) {
+      world.points = new Array();
+      world.coins = new Array();
+
+      // generate key points
+      var keypoints = new Array();
+      for(x = 0; x < LENGTH; x++)
       {
-        target = MIN_WIDTH;
-      }
-      x = x + target;
-    }
-
-    var smoothness = this.rng.random();
-    var last = 1;
-    var t = 0;
-    for(i = 0; i < keypoints.length; i++)
-    {
-      var target = last;
-      while((Math.abs(target - last) < (smoothness - SMOOTHNESS_AMPLITUDE)) || (Math.abs(target - last) > (smoothness + SMOOTHNESS_AMPLITUDE))) {
-        target = (this.rng.random() - 0.5) * 2;
+        keypoints.push(x);
+        var target = Math.round(world.rng.random() * MAX_WIDTH);
+        if (target < MIN_WIDTH)
+          target = MIN_WIDTH;
+        x = x + target;
       }
 
-      var a;
-      var shift;
-      a = (Math.abs(last) / 2) + (Math.abs(target) / 2);
-      if (target > last)
+      // generate landscape between keypoints
+      var smoothness = world.rng.random();
+      var last = 1;
+      var t = 0;
+      for(i = 0; i < keypoints.length; i++)
       {
-        if (last < 0 && target < 0) {
-          a = Math.abs(last) - a;
-          shift = Math.abs(last) - a;
-        } else {
-          if (last > 0 && target > 0) {
-            a = (target - last) / 2;
-          }
-          shift = (a - Math.abs(target));
+        // decide what the target height is
+        var target = last;
+        while((Math.abs(target - last) < (smoothness - SMOOTHNESS_AMPLITUDE)) || (Math.abs(target - last) > (smoothness + SMOOTHNESS_AMPLITUDE))) {
+          target = (world.rng.random() - 0.5) * 2;
         }
-      } else {
-        shift = -(a - Math.abs(target));
-        if (last < 0 && target < 0) {
-          a = -(Math.abs(last) - a);
-          shift = (Math.abs(last) + a);
-        } else if (last > 0 && target > 0) {
-          a = (last - target) / 2;
-          shift = -(Math.abs(target) + a);
-        }
-      }
 
-      for(x = keypoints[i]; x < keypoints[i + 1]; x++) {
-        var parts = keypoints[i + 1] - keypoints[i];
-        var part = x - keypoints[i];
-        var t;
+        // and how we get there
+        var a;
+        var shift;
+        a = (Math.abs(last) / 2) + (Math.abs(target) / 2);
         if (target > last)
         {
-          t = (Math.PI / parts) * part;
+          if (last < 0 && target < 0) {
+            a = Math.abs(last) - a;
+            shift = Math.abs(last) - a;
+          } else {
+            if (last > 0 && target > 0) {
+              a = (target - last) / 2;
+            }
+            shift = (a - Math.abs(target));
+          }
         } else {
-          t = ((Math.PI / parts) * part) + Math.PI;
-        }
-        this.points[x] = (Math.cos(t) * a) + shift;
-      }
-      last = target;
-    }
-
-    // extra padding so we don't get a steep dropoff
-    this.endpoint = keypoints[keypoints.length - 1];
-    for (x = this.endpoint; x < (this.endpoint + 10000); x++) {
-      this.points[x] = this.points[this.endpoint - 1];
-    }
-
-    for (i = 0; i < keypoints.length; i++) {
-      if (this.points[keypoints[i]] < this.points[keypoints[i + 1]])
-      {
-        if (this.rng.random() < COIN_PROBABILITY)
-        {
-          for (x = keypoints[i] + 50; x < (keypoints[i + 2] - 50); x += 50)
-          {
-            this.coins[x] = C_COIN;
+          shift = -(a - Math.abs(target));
+          if (last < 0 && target < 0) {
+            a = -(Math.abs(last) - a);
+            shift = (Math.abs(last) + a);
+          } else if (last > 0 && target > 0) {
+            a = (last - target) / 2;
+            shift = -(Math.abs(target) + a);
           }
         }
-        else if (this.rng.random() < BOOSTER_PROBABILITY)
+
+        // generate points between
+        for(x = keypoints[i]; x < keypoints[i + 1]; x++) {
+          var parts = keypoints[i + 1] - keypoints[i];
+          var part = x - keypoints[i];
+          var t;
+          if (target > last)
+          {
+            t = (Math.PI / parts) * part;
+          } else {
+            t = ((Math.PI / parts) * part) + Math.PI;
+          }
+          world.points[x] = (Math.cos(t) * a) + shift;
+        }
+        last = target;
+      }
+
+      // extra padding at end so we don't get a steep dropoff
+      world.endpoint = keypoints[keypoints.length - 1];
+      for (x = world.endpoint; x < (world.endpoint + 10000); x++) {
+        world.points[x] = world.points[world.endpoint - 1];
+      }
+
+      // generate coins
+      for (i = 0; i < keypoints.length; i++) {
+        if (world.points[keypoints[i]] < world.points[keypoints[i + 1]])
         {
-          this.coins[keypoints[i + 1]] = C_BOOSTER;
+          if (world.rng.random() < COIN_PROBABILITY)
+          {
+            for (x = keypoints[i] + 50; x < (keypoints[i + 2] - 50); x += 50)
+            {
+              world.coins[x] = C_COIN;
+            }
+          }
+          else if (world.rng.random() < BOOSTER_PROBABILITY)
+          {
+            world.coins[keypoints[i + 1]] = C_BOOSTER;
+          }
+        }
+        i++;
+      }
+    }
+  }),
+
+  World: $.Class({
+    init: function(tag) {
+      this.tag = tag;
+      this.rng = new MersenneTwister(tag);
+    },
+
+    draw: function(ctx) {
+      var startX = camera - 1;
+      var endX = camera + WIDTH + 2;
+
+      ctx.beginPath();
+      ctx.moveTo(-1, HEIGHT);
+      for(x = startX; x < endX; x++) {
+        var height = this.height(x);
+        ctx.lineTo(x - camera, height);
+      }
+      ctx.lineTo(WIDTH + 1, HEIGHT);
+      ctx.closePath();
+      ctx.stroke();
+
+      for (x = startX; x < endX; x++) {
+        if (this.coins[Math.round(x)] == C_COIN) {
+          var height = this.height(x) - 10;
+          ctx.beginPath();
+          ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
+          ctx.closePath();
+          ctx.fill();
+        } else if(this.coins[Math.round(x)] == C_BOOSTER) {
+          var height = this.height(x) - 10;
+          ctx.beginPath();
+          ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
+          ctx.closePath();
+          ctx.stroke();
         }
       }
-      i++;
+    },
+
+    height: function(point) {
+      rpoint = Math.round(point);
+      if (this.points[rpoint] == undefined)
+        return HEIGHT;
+      else
+        return (HEIGHT - 50 - (AMPLITUDE / 2)) + (this.points[rpoint] * (AMPLITUDE / 2));
+    },
+
+    angle: function(point) {
+      return Math.atan(this.height(point + 1) - this.height(point));
     }
-  },
+  }),
 
-  draw: function(ctx) {
-    var startX = camera - 1;
-    var endX = camera + WIDTH + 2;
+  Player: $.Class({
+    init: function(x, y, dx, dy) {
+      this.x = x;
+      this.y = y;
+      this.dx = dx;
+      this.dy = dy;
+      this.angle = 0;
+      this.v = 0;
+    },
 
-    ctx.beginPath();
-    ctx.moveTo(-1, HEIGHT);
-    for(x = startX; x < endX; x++) {
-      var height = this.height(x);
-      ctx.lineTo(x - camera, height);
-    }
-    ctx.lineTo(WIDTH + 1, HEIGHT);
-    ctx.closePath();
-    ctx.stroke();
+    updatePhysics: function() {
+      // gravity
+      var ax = 0;
+      var ay = gravity;
 
-    for (x = startX; x < endX; x++) {
-      if (this.coins[Math.round(x)] == C_COIN) {
-        var height = this.height(x) - 10;
-        ctx.beginPath();
-        ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
-        ctx.closePath();
-        ctx.fill();
-      } else if(this.coins[Math.round(x)] == C_BOOSTER) {
-        var height = this.height(x) - 10;
-        ctx.beginPath();
-        ctx.arc(x - camera, height, 5, 0, Math.PI*2, true);
-        ctx.closePath();
-        ctx.stroke();
+      // world collision
+      if ((this.y + 10) > world.height(this.x)) {
+        var newAngle = world.angle(this.x);
+        var angleDiff = (this.angle - newAngle) * 0.75;
+        this.v = this.v * Math.cos(angleDiff);
+        this.angle = newAngle;
+
+        this.dx = this.v * Math.cos(this.angle);
+        this.dy = this.v * Math.sin(this.angle);
+
+        this.y = world.height(this.x) - 10;
       }
+
+      this.dx += ax;
+      this.dy += ay;
+
+      this.angle = Math.atan(this.dy / this.dx);
+      this.v = Math.sqrt(Math.pow(this.dx, 2) + Math.pow(this.dy, 2));
+
+      // minimum speed
+      if (this.v < 75) {
+        this.v = 75;
+        this.dx = this.v * Math.cos(this.angle);
+        this.dy = this.v * Math.sin(this.angle);
+      }
+
+      // update position
+      this.x += (this.dx / 100);
+      this.y += (this.dy / 100);
+    },
+
+    draw: function(ctx) {
+      ctx.beginPath();
+      ctx.arc(this.x - camera, this.y, 10, 0, Math.PI*2, true);
+      ctx.closePath();
+      ctx.fill();
     }
-  },
+  })
+};
 
-  height: function(point) {
-    rpoint = Math.round(point);
-    if (this.points[rpoint] == undefined)
-      return HEIGHT;
-    else
-      return (HEIGHT - 50 - (AMPLITUDE / 2)) + (this.points[rpoint] * (AMPLITUDE / 2));
-  },
 
-  angle: function(point) {
-    return Math.atan(this.height(point + 1) - this.height(point));
-  }
-});
-
-var ballClass = $.Class({
-  init: function(x, y, dx, dy) {
-    this.x = x;
-    this.y = y;
-    this.dx = dx;
-    this.dy = dy;
-    this.angle = 0;
-    this.v = 0;
-  },
-
-  updatePhysics: function() {
-    // gravity
-    var ax = 0;
-    var ay = gravity;
-
-    // world collision
-    if ((this.y + 10) > world.height(this.x)) {
-      var newAngle = world.angle(this.x);
-      var angleDiff = (this.angle - newAngle) * 0.75;
-      this.v = this.v * Math.cos(angleDiff);
-      this.angle = newAngle;
-
-      this.dx = this.v * Math.cos(this.angle);
-      this.dy = this.v * Math.sin(this.angle);
-
-      this.y = world.height(this.x) - 10;
-    }
-
-    this.dx += ax;
-    this.dy += ay;
-
-    this.angle = Math.atan(this.dy / this.dx);
-    this.v = Math.sqrt(Math.pow(this.dx, 2) + Math.pow(this.dy, 2));
-
-    // minimum speed
-    if (this.v < 75) {
-      this.v = 75;
-      this.dx = this.v * Math.cos(this.angle);
-      this.dy = this.v * Math.sin(this.angle);
-    }
-
-    // update position
-    this.x += (this.dx / 100);
-    this.y += (this.dy / 100);
-  },
-
-  draw: function(ctx) {
-    ctx.beginPath();
-    ctx.arc(this.x - camera, this.y, 10, 0, Math.PI*2, true);
-    ctx.closePath();
-    ctx.fill();
-  }
-});
-
-var ball = new ballClass(50, 50, 30, -30);
-var world = new worldClass(WORLD_TAG);
+var player = new TinyWigs.Player(50, 50, 30, -30);
+var world;
 var timer;
 var sounds;
 
@@ -226,7 +239,7 @@ function init() {
   ctx = $('#canvas')[0].getContext("2d");
   WIDTH = $('#canvas').width();
   HEIGHT = $('#canvas').height();
-  world.generate();
+  world = new TinyWigs.WorldGenerator().generate(WORLD_TAG);
   $(document).keydown(function(evt) {
     if (evt.keyCode == 32) {
       gravity = HIGH_GRAVITY;
@@ -266,13 +279,13 @@ function init() {
     var sound = new Audio("sounds/chime0" + i + ".ogg");
     sounds.push(sound);
   }
-  setInterval(render, 16);
+  setInterval(render, 20);
 }
 
 function render() {
-  if (ball.x - camera > (WIDTH / 3))
+  if (player.x - camera > (WIDTH / 3))
   {
-    camera += (ball.x - camera) - (WIDTH / 3);
+    camera += (player.x - camera) - (WIDTH / 3);
   }
 
   ctx.fillStyle = 'rgba(255, 255, 255, 0.8);';
@@ -284,7 +297,7 @@ function render() {
   ctx.fillText("World: " + world.tag, 75, HEIGHT - 25);
 
   if (STARTED) {
-    ball.draw(ctx);
+    player.draw(ctx);
   } else {
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4);';
@@ -301,10 +314,10 @@ function render() {
 }
 
 function physics() {
-  ball.updatePhysics();
-  score += Math.round(ball.v / 100);
-  for (x = ball.x - 10; x < ball.x + 10; x++) {
-    if (ball.y > world.height(x) - 20)
+  player.updatePhysics();
+  score += Math.round(player.v / 100);
+  for (x = player.x - 10; x < player.x + 10; x++) {
+    if (player.y > world.height(x) - 20)
     {
       if (world.coins[Math.round(x)] == C_COIN) {
         score += 100;
@@ -313,18 +326,18 @@ function physics() {
       } else if (world.coins[Math.round(x)] == C_BOOSTER) {
         score += 100;
         world.coins[Math.round(x)] = C_NONE;
-        ball.v += 300;
+        player.v += 300;
         playCoinSound();
       }
     }
   }
-  if (ball.x > world.endpoint) {
+  if (player.x > world.endpoint) {
     finish();
   }
 }
 
 function playCoinSound() {
-  var i = Math.round((ball.v / 1500) * 10);
+  var i = Math.round((player.v / 1500) * 10);
   if (i < 0)
     i = 0;
   if (i > 8)
@@ -337,10 +350,10 @@ function restart(tag) {
   clearTimeout(timer);
   STARTED = false;
   $('#tada').hide();
-  world = new worldClass(tag);
-  world.generate();
-  ball = new ballClass(50, 50, 30, -30);
+  world = new TinyWigs.WorldGenerator().generate(tag);
+  player = new TinyWigs.Player(50, 50, 30, -30);
   camera = 0;
+  score = 0;
 }
 
 function finish() {
@@ -360,3 +373,7 @@ function finish() {
   $('#score').text(score);
   $('#tada').show();
 }
+
+$(document).ready(function() {
+  init();
+});
