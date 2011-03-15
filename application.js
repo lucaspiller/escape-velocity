@@ -29,12 +29,12 @@ var TinyWigs = {
     generateLandscape: function(world) {
       world.points = new Array();
       world.coins = new Array();
-      world.keypoints = new Array();
 
       // generate key points
+      var keypoints = new Array();
       for(x = 0; x < LENGTH; x++)
       {
-        world.keypoints.push(x);
+        keypoints.push(x);
         var target = Math.round(world.rng.random() * MAX_WIDTH);
         if (target < MIN_WIDTH)
           target = MIN_WIDTH;
@@ -45,7 +45,7 @@ var TinyWigs = {
       var smoothness = world.rng.random();
       var last = 1;
       var t = 0;
-      for(i = 0; i < world.keypoints.length; i++)
+      for(i = 0; i < keypoints.length; i++)
       {
         // decide what the target height is
         var target = last;
@@ -80,9 +80,9 @@ var TinyWigs = {
         }
 
         // generate points between
-        for(x = world.keypoints[i]; x < world.keypoints[i + 1]; x++) {
-          var parts = world.keypoints[i + 1] - world.keypoints[i];
-          var part = x - world.keypoints[i];
+        for(x = keypoints[i]; x < keypoints[i + 1]; x++) {
+          var parts = keypoints[i + 1] - keypoints[i];
+          var part = x - keypoints[i];
           var t;
           if (target > last)
           {
@@ -96,25 +96,25 @@ var TinyWigs = {
       }
 
       // extra padding at end so we don't get a steep dropoff
-      world.endpoint = world.keypoints[world.keypoints.length - 1];
+      world.endpoint = keypoints[keypoints.length - 1];
       for (x = world.endpoint; x < (world.endpoint + 10000); x++) {
         world.points[x] = world.points[world.endpoint - 1];
       }
 
       // generate coins
-      for (i = 0; i < world.keypoints.length; i++) {
-        if (world.points[world.keypoints[i]] < world.points[world.keypoints[i + 1]])
+      for (i = 0; i < keypoints.length; i++) {
+        if (world.points[keypoints[i]] < world.points[keypoints[i + 1]])
         {
           if (world.rng.random() < COIN_PROBABILITY)
           {
-            for (x = world.keypoints[i] + 50; x < (world.keypoints[i + 2] - 50); x += 50)
+            for (x = keypoints[i] + 50; x < (keypoints[i + 2] - 50); x += 50)
             {
               world.coins[x] = C_COIN;
             }
           }
           else if (world.rng.random() < BOOSTER_PROBABILITY)
           {
-            world.coins[world.keypoints[i + 1]] = C_BOOSTER;
+            world.coins[keypoints[i + 1]] = C_BOOSTER;
           }
         }
         i++;
@@ -283,7 +283,7 @@ function init() {
   HEIGHT = $('#canvas').height();
   $(document).keydown(function(evt) {
     if (evt.keyCode == 32) {
-      goheavy();
+      gravity = HIGH_GRAVITY;
     }
   });
   $(document).keyup(function(evt) {
@@ -293,14 +293,14 @@ function init() {
         timer = setInterval(physics, 16);
         STARTED = true;
       }
-      stopheavy();
+      gravity = LOW_GRAVITY;
     }
     if (evt.keyCode == 82) {
       resetGame(Math.round(Math.random() * 99999));
     }
   });
   $(document).bind("touchstart",function(event){
-    goheavy();
+    gravity = HIGH_GRAVITY;
   });
   $(document).bind("touchend",function(event){
     if (!STARTED)
@@ -308,7 +308,7 @@ function init() {
       timer = setInterval(physics, 16);
       STARTED = true;
     }
-    stopheavy();
+    gravity = LOW_GRAVITY;
   });
   $('#retry-button').bind("click", function() {
       resetGame(world.tag);
@@ -322,14 +322,6 @@ function init() {
   }
   resetGame(WORLD_TAG);
   setInterval(render, 16);
-}
-
-function goheavy() {
-  gravity = HIGH_GRAVITY;
-}
-
-function stopheavy() {
-  gravity = LOW_GRAVITY;
 }
 
 function resetGame(tag) {
