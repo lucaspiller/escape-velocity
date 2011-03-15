@@ -189,13 +189,13 @@ var TinyWigs = {
 
     updatePhysics: function() {
       // gravity
-      var ax = 0;
+      var ax = -0.5;
       var ay = gravity;
 
       // world collision
       if ((this.y + 10) > world.height(this.x)) {
         var newAngle = world.angle(this.x);
-        var angleDiff = (this.angle - newAngle) * 0.9;
+        var angleDiff = (this.angle - newAngle) * 0.75;
         this.v = this.v * Math.cos(angleDiff);
         this.angle = newAngle;
 
@@ -296,8 +296,7 @@ function init() {
     if (evt.keyCode == 32) {
       if (!STARTED)
       {
-        timer = setInterval(physics, 16);
-        STARTED = true;
+        startGame();
       }
       stopHeavy();
     }
@@ -311,8 +310,7 @@ function init() {
   $(document).bind("touchend",function(event){
     if (!STARTED)
     {
-      timer = setInterval(physics, 16);
-      STARTED = true;
+      startGame();
     }
     stopHeavy();
   });
@@ -358,7 +356,7 @@ function stopHeavy() {
   if (perfect) {
     if (perfectSection == world.section[Math.round(player.x)])
     {
-      if ((player.x - world.sectionBoundaries[world.section[Math.round(player.x)] + 1]) < 200)
+      if ((player.x - world.sectionBoundaries[world.section[Math.round(player.x)] + 1]) < 50)
       {
         osds.push({
           x: player.x,
@@ -371,6 +369,16 @@ function stopHeavy() {
   }
   perfect = false;
   gravity = LOW_GRAVITY;
+}
+
+function startGame() {
+  osds.push({
+    x: player.x,
+    y: player.y - 20,
+    text: "Let's go!"
+  });
+  timer = setInterval(physics, 16);
+  STARTED = true;
 }
 
 function resetGame(tag) {
@@ -386,12 +394,6 @@ function resetGame(tag) {
   renderer.children.push(player);
   camera = 0;
   score = 0;
-
-  osds.push({
-    x: player.x,
-    y: player.y - 20,
-    text: "Let's go!"
-  });
 }
 
 function finish() {
