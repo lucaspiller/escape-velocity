@@ -1,6 +1,6 @@
 var WIDTH;
 var HEIGHT;
-var HIGH_GRAVITY = 20;
+var HIGH_GRAVITY = 25;
 var LOW_GRAVITY = 5;
 var AMPLITUDE = 200;
 var MIN_WIDTH = 200;
@@ -122,6 +122,8 @@ var TinyWigs = {
         }
         i++;
       }
+
+      world.sectionBoundaries = keypoints;
     }
   }),
 
@@ -193,7 +195,7 @@ var TinyWigs = {
       // world collision
       if ((this.y + 10) > world.height(this.x)) {
         var newAngle = world.angle(this.x);
-        var angleDiff = (this.angle - newAngle) * 0.75;
+        var angleDiff = (this.angle - newAngle) * 0.9;
         this.v = this.v * Math.cos(angleDiff);
         this.angle = newAngle;
 
@@ -286,7 +288,7 @@ function init() {
   HEIGHT = $('#canvas').height();
   $(document).keydown(function(evt) {
     if (evt.keyCode == 32) {
-      gravity = HIGH_GRAVITY;
+      goHeavy();
     }
   });
   $(document).keyup(function(evt) {
@@ -296,14 +298,14 @@ function init() {
         timer = setInterval(physics, 16);
         STARTED = true;
       }
-      gravity = LOW_GRAVITY;
+      stopHeavy();
     }
     if (evt.keyCode == 82) {
       resetGame(Math.round(Math.random() * 99999));
     }
   });
   $(document).bind("touchstart",function(event){
-    gravity = HIGH_GRAVITY;
+    goHeavy();
   });
   $(document).bind("touchend",function(event){
     if (!STARTED)
@@ -311,11 +313,11 @@ function init() {
       timer = setInterval(physics, 16);
       STARTED = true;
     }
-    gravity = LOW_GRAVITY;
+    stopHeavy();
   });
   $('#retry-button').bind("click", function() {
-      resetGame(world.tag);
-      return false;
+    resetGame(world.tag);
+    return false;
   });
   sounds = new Array();
   for (i = 1; i <= 9; i++)
@@ -325,6 +327,44 @@ function init() {
   }
   resetGame(WORLD_TAG);
   setInterval(render, 16);
+}
+
+var perfect = false;
+var perfectSection = 0;
+
+function goHeavy() {
+  gravity = HIGH_GRAVITY;
+  var curSection = world.section[Math.round(player.x)];
+  if ((world.sectionBoundaries[curSection] - player.x < 200) || perfect) {
+    if (Math.abs(player.y - world.height(player.x)) < 10) {
+      // check a proper loop
+      if (world.height(world.sectionBoundaries[curSection]) < world.height(world.sectionBoundaries[curSection + 1]) &&
+          world.height(world.sectionBoundaries[curSection + 1]) > world.height(world.sectionBoundaries[curSection + 2]))
+      {
+        if (perfectSection != curSection)
+        {
+          perfect = true;
+          perfectSection = curSection;
+        }
+      }
+    } else {
+      perfect = false;
+    }
+  }
+}
+
+function stopHeavy() {
+  if (perfect) {
+    if (perfectSection == world.section[Math.round(player.x)])
+    {
+      if ((player.x - world.sectionBoundaries[world.section[Math.round(player.x)] + 1]) < 200)
+      {
+        console.log('Perfect!');
+      }
+    }
+  }
+  perfect = false;
+  gravity = LOW_GRAVITY;
 }
 
 function resetGame(tag) {
