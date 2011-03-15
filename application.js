@@ -281,6 +281,7 @@ var player;
 var world;
 var timer;
 var sounds;
+var osds;
 
 function init() {
   ctx = $('#canvas')[0].getContext("2d");
@@ -359,7 +360,12 @@ function stopHeavy() {
     {
       if ((player.x - world.sectionBoundaries[world.section[Math.round(player.x)] + 1]) < 200)
       {
-        console.log('Perfect!');
+        osds.push({
+          x: player.x,
+          y: player.y - 20,
+          text: 'Perfect!'
+        });
+        score += 1000;
       }
     }
   }
@@ -375,17 +381,24 @@ function resetGame(tag) {
   world = new TinyWigs.WorldGenerator().generate(tag);
   player = new TinyWigs.Player(50, 50, 30, -30);
   renderer = new TinyWigs.Renderer(ctx, player);
+  osds = new Array();
   renderer.children.push(world);
   renderer.children.push(player);
   camera = 0;
   score = 0;
+
+  osds.push({
+    x: player.x,
+    y: player.y - 20,
+    text: "Let's go!"
+  });
 }
 
 function finish() {
   clearInterval(timer);
   $('#tweet-cont').children().remove();
   var link = $( document.createElement('a') );
-  link.attr("data-text", "I just scored " + score + " points on world " + world.tag + ".")
+  link.attr("data-text", "I just scored " + score + " points on world " + world.tag + ".");
   link.attr("class", "twitter-share-button");
   link.attr("href", "http://twitter.com/share");
   link.attr("data-url", "http://bit.ly/fRgEdr");
@@ -404,6 +417,21 @@ function render() {
 
   ctx.fillText(score, 25, HEIGHT - 25);
   ctx.fillText("World: " + world.tag, 75, HEIGHT - 25);
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6);';
+  ctx.font = "18px sans-serif";
+  for(var i = osds.length - 1; i >= 0; i--)
+  {
+    if ((osds[i].x - renderer.camera.x) < -100)
+    {
+      osds.splice(i, 1);
+    } else {
+      osds[i].y -= 1;
+      ctx.fillText(osds[i].text, osds[i].x - renderer.camera.x, osds[i].y);
+    }
+  }
+  ctx.restore();
 
   if (!STARTED) {
     ctx.save();
