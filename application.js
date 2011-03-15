@@ -28,6 +28,7 @@ var TinyWigs = {
 
     generateLandscape: function(world) {
       world.points = new Array();
+      world.section = new Array();
       world.coins = new Array();
 
       // generate key points
@@ -91,6 +92,7 @@ var TinyWigs = {
             t = ((Math.PI / parts) * part) + Math.PI;
           }
           world.points[x] = (Math.cos(t) * a) + shift;
+          world.section[x] = i;
         }
         last = target;
       }
@@ -99,6 +101,7 @@ var TinyWigs = {
       world.endpoint = keypoints[keypoints.length - 1];
       for (x = world.endpoint; x < (world.endpoint + 10000); x++) {
         world.points[x] = world.points[world.endpoint - 1];
+        world.section[x] = keypoints.length;
       }
 
       // generate coins
