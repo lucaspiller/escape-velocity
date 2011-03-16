@@ -291,6 +291,75 @@ var TinyWigs = {
 
     end: function() {
       this.started = false;
+    },
+
+    loop: function() {
+      var start = new Date().getTime();
+      this.render();
+      if (this.started)
+        this.physics();
+      var end = new Date().getTime();
+      setTimeout(function(obj) { obj.loop(); }, 16 - (end - start), this);
+    },
+
+    render: function() {
+      this.renderer.render();
+
+      ctx.fillText(this.score, 25, HEIGHT - 25);
+      ctx.fillText("World: " + this.world.tag, 75, HEIGHT - 25);
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6);';
+      ctx.font = "18px sans-serif";
+      for(var i = osds.length - 1; i >= 0; i--)
+      {
+        if ((osds[i].x - this.renderer.camera.x) < -100)
+        {
+          osds.splice(i, 1);
+        } else {
+          osds[i].y -= 1;
+          ctx.fillText(osds[i].text, osds[i].x - this.renderer.camera.x, osds[i].y);
+        }
+      }
+      ctx.restore();
+
+      if (!this.started) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4);';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+        ctx.font = "26px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Spacebar / Touch to Start", WIDTH / 2, HEIGHT / 5);
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("R for new world" , WIDTH / 2, (HEIGHT / 5) + 25);
+        ctx.restore();
+      }
+    },
+
+    physics: function() {
+      this.player.updatePhysics();
+      this.score += Math.round(this.player.v / 100);
+      for (var x = this.player.x - 10; x < this.player.x + 10; x++) {
+        if (this.player.y > this.world.height(x) - 20)
+        {
+          if (this.world.coins[Math.round(x)] == C_COIN) {
+            this.score += 100;
+            this.world.coins[Math.round(x)] = C_NONE;
+            playCoinSound();
+          } else if (this.world.coins[Math.round(x)] == C_BOOSTER) {
+            this.score += 100;
+            this.world.coins[Math.round(x)] = C_NONE;
+            this.player.v += 300;
+            playCoinSound();
+          }
+        }
+      }
+
+      if (this.player.x > this.world.endpoint) {
+        finish();
+      }
     }
   })
 };
@@ -341,7 +410,6 @@ function init() {
     sounds.push(sound);
   }
   resetGame(WORLD_TAG);
-  render();
 }
 
 var perfect = false;
@@ -391,6 +459,7 @@ function resetGame(tag) {
   osds = new Array();
   $('#tada').hide();
   game = new TinyWigs.Game(tag);
+  game.loop();
 }
 
 function startGame() {
@@ -418,74 +487,6 @@ function finish() {
   tweetButton.render();
   $('#score').text(game.score);
   $('#tada').show();
-}
-
-function render() {
-  var start = new Date().getTime();
-  game.renderer.render();
-
-  ctx.fillText(game.score, 25, HEIGHT - 25);
-  ctx.fillText("World: " + game.world.tag, 75, HEIGHT - 25);
-
-  ctx.save();
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6);';
-  ctx.font = "18px sans-serif";
-  for(var i = osds.length - 1; i >= 0; i--)
-  {
-    if ((osds[i].x - game.renderer.camera.x) < -100)
-    {
-      osds.splice(i, 1);
-    } else {
-      osds[i].y -= 1;
-      ctx.fillText(osds[i].text, osds[i].x - game.renderer.camera.x, osds[i].y);
-    }
-  }
-  ctx.restore();
-
-  if (!game.started) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4);';
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    ctx.fillStyle = 'rgba(0, 0, 0, 1);';
-    ctx.font = "26px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("Spacebar / Touch to Start", WIDTH / 2, HEIGHT / 5);
-    ctx.font = "16px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("R for new world" , WIDTH / 2, (HEIGHT / 5) + 25);
-    ctx.restore();
-  }
-
-  if (game.started)
-  {
-    physics();
-  }
-
-  var end = new Date().getTime();
-  setTimeout(render, 16 - (end - start));
-}
-
-function physics() {
-  game.player.updatePhysics();
-  game.score += Math.round(game.player.v / 100);
-  for (var x = game.player.x - 10; x < game.player.x + 10; x++) {
-    if (game.player.y > game.world.height(x) - 20)
-    {
-      if (game.world.coins[Math.round(x)] == C_COIN) {
-        game.score += 100;
-        game.world.coins[Math.round(x)] = C_NONE;
-        playCoinSound();
-      } else if (game.world.coins[Math.round(x)] == C_BOOSTER) {
-        game.score += 100;
-        game.world.coins[Math.round(x)] = C_NONE;
-        game.player.v += 300;
-        playCoinSound();
-      }
-    }
-  }
-  if (game.player.x > game.world.endpoint) {
-    finish();
-  }
 }
 
 function playCoinSound() {
