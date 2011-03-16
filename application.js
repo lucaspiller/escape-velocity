@@ -33,7 +33,7 @@ var TinyWigs = {
 
       // generate key points
       var keypoints = new Array();
-      for(x = 0; x < LENGTH; x++)
+      for(var x = 0; x < LENGTH; x++)
       {
         keypoints.push(x);
         var target = Math.round(world.rng.random() * MAX_WIDTH);
@@ -46,7 +46,7 @@ var TinyWigs = {
       var smoothness = world.rng.random();
       var last = 1;
       var t = 0;
-      for(i = 0; i < keypoints.length; i++)
+      for(var i = 0, l = keypoints.length; i < l; i++)
       {
         // decide what the target height is
         var target = last;
@@ -81,7 +81,7 @@ var TinyWigs = {
         }
 
         // generate points between
-        for(x = keypoints[i]; x < keypoints[i + 1]; x++) {
+        for(var x = keypoints[i]; x < keypoints[i + 1]; x++) {
           var parts = keypoints[i + 1] - keypoints[i];
           var part = x - keypoints[i];
           var t;
@@ -99,18 +99,18 @@ var TinyWigs = {
 
       // extra padding at end so we don't get a steep dropoff
       world.endpoint = keypoints[keypoints.length - 1];
-      for (x = world.endpoint; x < (world.endpoint + 10000); x++) {
+      for (var x = world.endpoint; x < (world.endpoint + 10000); x++) {
         world.points[x] = world.points[world.endpoint - 1];
         world.section[x] = keypoints.length;
       }
 
       // generate coins
-      for (i = 0; i < keypoints.length; i++) {
+      for (var i = 0, l = keypoints.length; i < l; i++) {
         if (world.points[keypoints[i]] < world.points[keypoints[i + 1]])
         {
           if (world.rng.random() < COIN_PROBABILITY)
           {
-            for (x = keypoints[i] + 50; x < (keypoints[i + 2] - 50); x += 50)
+            for (var x = keypoints[i] + 50; x < (keypoints[i + 2] - 50); x += 50)
             {
               world.coins[x] = C_COIN;
             }
@@ -139,7 +139,7 @@ var TinyWigs = {
 
       ctx.beginPath();
       ctx.moveTo(-1, HEIGHT);
-      for(x = startX; x < endX; x++) {
+      for(var x = startX; x < endX; x++) {
         var height = this.height(x);
         ctx.lineTo(x - camera.x, height - camera.y);
       }
@@ -147,7 +147,7 @@ var TinyWigs = {
       ctx.closePath();
       ctx.stroke();
 
-      for (x = startX; x < endX; x++) {
+      for (var x = startX; x < endX; x++) {
         if (this.coins[Math.round(x)] == C_COIN) {
           var height = this.height(x) - 10;
           ctx.beginPath();
@@ -166,10 +166,10 @@ var TinyWigs = {
 
     height: function(point) {
       rpoint = Math.round(point);
-      if (this.points[rpoint] == undefined)
-        return HEIGHT;
-      else
+      if (rpoint in this.points)
         return (HEIGHT - 50 - (AMPLITUDE / 2)) + (this.points[rpoint] * (AMPLITUDE / 2));
+      else
+        return HEIGHT;
     },
 
     angle: function(point) {
@@ -263,7 +263,7 @@ var TinyWigs = {
         this.camera.y += ((this.focus.y - this.camera.y) - (HEIGHT / 10)) / 8;
       }
 
-      for(i = 0; i < this.children.length; i++) {
+      for(var i = 0, l = this.children.length; i < l; i++) {
         this.children[i].draw(this.ctx, this.camera);
       }
     },
@@ -279,7 +279,6 @@ var TinyWigs = {
 var renderer;
 var player;
 var world;
-var timer;
 var sounds;
 var osds;
 
@@ -319,13 +318,13 @@ function init() {
     return false;
   });
   sounds = new Array();
-  for (i = 1; i <= 9; i++)
+  for (var i = 1; i <= 9; i++)
   {
     var sound = new Audio("sounds/chime0" + i + ".ogg");
     sounds.push(sound);
   }
   resetGame(WORLD_TAG);
-  setInterval(render, 16);
+  render();
 }
 
 var perfect = false;
@@ -377,12 +376,10 @@ function startGame() {
     y: player.y - 20,
     text: "Let's go!"
   });
-  timer = setInterval(physics, 16);
   STARTED = true;
 }
 
 function resetGame(tag) {
-  clearTimeout(timer);
   STARTED = false;
   $('#tada').hide();
 
@@ -397,7 +394,7 @@ function resetGame(tag) {
 }
 
 function finish() {
-  clearInterval(timer);
+  STARTED = false;
   $('#tweet-cont').children().remove();
   var link = $( document.createElement('a') );
   link.attr("data-text", "I just scored " + score + " points on world " + world.tag + ".");
@@ -415,6 +412,7 @@ function finish() {
 }
 
 function render() {
+  var start = new Date().getTime();
   renderer.render();
 
   ctx.fillText(score, 25, HEIGHT - 25);
@@ -448,12 +446,20 @@ function render() {
     ctx.fillText("R for new world" , WIDTH / 2, (HEIGHT / 5) + 25);
     ctx.restore();
   }
+
+  if (STARTED)
+  {
+    physics();
+  }
+
+  var end = new Date().getTime();
+  setTimeout(render, 16 - (end - start));
 }
 
 function physics() {
   player.updatePhysics();
   score += Math.round(player.v / 100);
-  for (x = player.x - 10; x < player.x + 10; x++) {
+  for (var x = player.x - 10; x < player.x + 10; x++) {
     if (player.y > world.height(x) - 20)
     {
       if (world.coins[Math.round(x)] == C_COIN) {
