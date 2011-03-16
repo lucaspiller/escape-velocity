@@ -240,14 +240,14 @@ var TinyWigs = {
   Renderer: $.Class({
     init: function(ctx, focus) {
       this.children = new Array();
+      this.osds = new Array();
       this.camera = new TinyWigs.Camera();
       this.ctx = ctx
       this.focus = focus;
     },
 
     render: function() {
-      this.clear();
-
+      // update camera
       if (this.focus.x - this.camera.x > (WIDTH / 3))
       {
         this.camera.x += (this.focus.x - this.camera.x) - (WIDTH / 3);
@@ -262,15 +262,42 @@ var TinyWigs = {
         this.camera.y += ((this.focus.y - this.camera.y) - (HEIGHT / 10)) / 8;
       }
 
+      this.clear();
+
+      // render objects
       for(var i = 0, l = this.children.length; i < l; i++) {
         this.children[i].draw(this.ctx, this.camera);
       }
+
+      // render this.osds
+      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6);';
+      ctx.font = "18px sans-serif";
+      for(var i = this.osds.length - 1; i >= 0; i--)
+      {
+        if ((this.osds[i].x - this.camera.x) < -100)
+        {
+          this.osds.splice(i, 1);
+        } else {
+          this.osds[i].y -= 1;
+          ctx.fillText(this.osds[i].text, this.osds[i].x - this.camera.x, this.osds[i].y);
+        }
+      }
+      ctx.restore();
     },
 
     clear: function() {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8);';
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
       ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+    },
+
+    createOSD: function(text) {
+      this.osds.push({
+        x: game.player.x,
+        y: game.player.y - 20,
+        text: text
+      });
     }
   }),
 
@@ -286,6 +313,7 @@ var TinyWigs = {
     },
 
     start: function() {
+      this.renderer.createOSD("Let's go!");
       this.started = true;
     },
 
@@ -307,21 +335,6 @@ var TinyWigs = {
 
       ctx.fillText(this.score, 25, HEIGHT - 25);
       ctx.fillText("World: " + this.world.tag, 75, HEIGHT - 25);
-
-      ctx.save();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6);';
-      ctx.font = "18px sans-serif";
-      for(var i = osds.length - 1; i >= 0; i--)
-      {
-        if ((osds[i].x - this.renderer.camera.x) < -100)
-        {
-          osds.splice(i, 1);
-        } else {
-          osds[i].y -= 1;
-          ctx.fillText(osds[i].text, osds[i].x - this.renderer.camera.x, osds[i].y);
-        }
-      }
-      ctx.restore();
 
       if (!this.started) {
         ctx.save();
@@ -365,7 +378,6 @@ var TinyWigs = {
 };
 
 var sounds;
-var osds;
 var game;
 
 function init() {
@@ -442,11 +454,7 @@ function stopHeavy() {
     {
       if ((game.player.x - game.world.sectionBoundaries[game.world.section[Math.round(game.player.x)] + 1]) < 50)
       {
-        osds.push({
-          x: game.player.x,
-          y: game.player.y - 20,
-          text: 'Perfect!'
-        });
+        game.renderer.createOSD("Perfect!");
         game.score += 1000;
       }
     }
@@ -463,11 +471,6 @@ function resetGame(tag) {
 }
 
 function startGame() {
-  osds.push({
-    x: game.player.x,
-    y: game.player.y - 20,
-    text: "Let's go!"
-  });
   game.start();
 }
 
