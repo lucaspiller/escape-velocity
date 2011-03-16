@@ -11,8 +11,6 @@ var gravity = LOW_GRAVITY;
 var WORLD_TAG = 53775
 var COIN_PROBABILITY = 0.5;
 var BOOSTER_PROBABILITY = 0.1;
-var STARTED = false;
-var score = 0;
 
 var C_NONE = 0;
 var C_COIN = 1;
@@ -178,7 +176,8 @@ var TinyWigs = {
   }),
 
   Player: $.Class({
-    init: function(x, y, dx, dy) {
+    init: function(world, x, y, dx, dy) {
+      this.world = world;
       this.x = x;
       this.y = y;
       this.dx = dx;
@@ -193,8 +192,8 @@ var TinyWigs = {
       var ay = gravity;
 
       // world collision
-      if ((this.y + 10) > world.height(this.x)) {
-        var newAngle = world.angle(this.x);
+      if ((this.y + 10) > this.world.height(this.x)) {
+        var newAngle = this.world.angle(this.x);
         var angleDiff = (this.angle - newAngle) * 0.75;
         this.v = this.v * Math.cos(angleDiff);
         this.angle = newAngle;
@@ -202,7 +201,7 @@ var TinyWigs = {
         this.dx = this.v * Math.cos(this.angle);
         this.dy = this.v * Math.sin(this.angle);
 
-        this.y = world.height(this.x) - 10;
+        this.y = this.world.height(this.x) - 10;
       }
 
       this.dx += ax;
@@ -273,14 +272,32 @@ var TinyWigs = {
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
       ctx.fillStyle = 'rgba(0, 0, 0, 1);';
     }
+  }),
+
+  Game: $.Class({
+    init: function(tag) {
+      this.score = 0;
+      this.started = false;
+      this.world = new TinyWigs.WorldGenerator().generate(tag);
+      this.player = new TinyWigs.Player(this.world, 50, 50, 30, -30);
+      this.renderer = new TinyWigs.Renderer(ctx, this.player);
+      this.renderer.children.push(this.world);
+      this.renderer.children.push(this.player);
+    },
+
+    start: function() {
+      this.started = true;
+    },
+
+    end: function() {
+      this.started = false;
+    }
   })
 };
 
-var renderer;
-var player;
-var world;
 var sounds;
 var osds;
+var game;
 
 function init() {
   ctx = $('#canvas')[0].getContext("2d");
@@ -293,7 +310,7 @@ function init() {
   });
   $(document).keyup(function(evt) {
     if (evt.keyCode == 32) {
-      if (!STARTED)
+      if (!game.started)
       {
         startGame();
       }
@@ -307,14 +324,14 @@ function init() {
     goHeavy();
   });
   $(document).bind("touchend",function(event){
-    if (!STARTED)
+    if (!game.started)
     {
       startGame();
     }
     stopHeavy();
   });
   $('#retry-button').bind("click", function() {
-    resetGame(world.tag);
+    resetGame(game.world.tag);
     return false;
   });
   sounds = new Array();
@@ -332,12 +349,12 @@ var perfectSection = 0;
 
 function goHeavy() {
   gravity = HIGH_GRAVITY;
-  var curSection = world.section[Math.round(player.x)];
-  if ((world.sectionBoundaries[curSection] - player.x < 200) || perfect) {
-    if (Math.abs(player.y - world.height(player.x)) < 10) {
+  var curSection = game.world.section[Math.round(game.player.x)];
+  if ((game.world.sectionBoundaries[curSection] - game.player.x < 200) || perfect) {
+    if (Math.abs(game.player.y - game.world.height(game.player.x)) < 10) {
       // check a proper loop
-      if (world.height(world.sectionBoundaries[curSection]) < world.height(world.sectionBoundaries[curSection + 1]) &&
-          world.height(world.sectionBoundaries[curSection + 1]) > world.height(world.sectionBoundaries[curSection + 2]))
+      if (game.world.height(game.world.sectionBoundaries[curSection]) < game.world.height(game.world.sectionBoundaries[curSection + 1]) &&
+          game.world.height(game.world.sectionBoundaries[curSection + 1]) > game.world.height(game.world.sectionBoundaries[curSection + 2]))
       {
         if (perfectSection != curSection)
         {
@@ -353,16 +370,16 @@ function goHeavy() {
 
 function stopHeavy() {
   if (perfect) {
-    if (perfectSection == world.section[Math.round(player.x)])
+    if (perfectSection == game.world.section[Math.round(game.player.x)])
     {
-      if ((player.x - world.sectionBoundaries[world.section[Math.round(player.x)] + 1]) < 50)
+      if ((game.player.x - game.world.sectionBoundaries[game.world.section[Math.round(game.player.x)] + 1]) < 50)
       {
         osds.push({
-          x: player.x,
-          y: player.y - 20,
+          x: game.player.x,
+          y: game.player.y - 20,
           text: 'Perfect!'
         });
-        score += 1000;
+        game.score += 1000;
       }
     }
   }
@@ -370,34 +387,26 @@ function stopHeavy() {
   gravity = LOW_GRAVITY;
 }
 
-function startGame() {
-  osds.push({
-    x: player.x,
-    y: player.y - 20,
-    text: "Let's go!"
-  });
-  STARTED = true;
+function resetGame(tag) {
+  osds = new Array();
+  $('#tada').hide();
+  game = new TinyWigs.Game(tag);
 }
 
-function resetGame(tag) {
-  STARTED = false;
-  $('#tada').hide();
-
-  world = new TinyWigs.WorldGenerator().generate(tag);
-  player = new TinyWigs.Player(50, 50, 30, -30);
-  renderer = new TinyWigs.Renderer(ctx, player);
-  osds = new Array();
-  renderer.children.push(world);
-  renderer.children.push(player);
-  camera = 0;
-  score = 0;
+function startGame() {
+  osds.push({
+    x: game.player.x,
+    y: game.player.y - 20,
+    text: "Let's go!"
+  });
+  game.start();
 }
 
 function finish() {
-  STARTED = false;
+  game.end();
   $('#tweet-cont').children().remove();
   var link = $( document.createElement('a') );
-  link.attr("data-text", "I just scored " + score + " points on world " + world.tag + ".");
+  link.attr("data-text", "I just scored " + game.score + " points on world " + game.world.tag + ".");
   link.attr("class", "twitter-share-button");
   link.attr("href", "http://twitter.com/share");
   link.attr("data-url", "http://bit.ly/fRgEdr");
@@ -407,33 +416,33 @@ function finish() {
   $('#tweet-cont').append(link);
   var tweetButton = new twttr.TweetButton($(link).get(0));
   tweetButton.render();
-  $('#score').text(score);
+  $('#score').text(game.score);
   $('#tada').show();
 }
 
 function render() {
   var start = new Date().getTime();
-  renderer.render();
+  game.renderer.render();
 
-  ctx.fillText(score, 25, HEIGHT - 25);
-  ctx.fillText("World: " + world.tag, 75, HEIGHT - 25);
+  ctx.fillText(game.score, 25, HEIGHT - 25);
+  ctx.fillText("World: " + game.world.tag, 75, HEIGHT - 25);
 
   ctx.save();
   ctx.fillStyle = 'rgba(0, 0, 0, 0.6);';
   ctx.font = "18px sans-serif";
   for(var i = osds.length - 1; i >= 0; i--)
   {
-    if ((osds[i].x - renderer.camera.x) < -100)
+    if ((osds[i].x - game.renderer.camera.x) < -100)
     {
       osds.splice(i, 1);
     } else {
       osds[i].y -= 1;
-      ctx.fillText(osds[i].text, osds[i].x - renderer.camera.x, osds[i].y);
+      ctx.fillText(osds[i].text, osds[i].x - game.renderer.camera.x, osds[i].y);
     }
   }
   ctx.restore();
 
-  if (!STARTED) {
+  if (!game.started) {
     ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4);';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -447,7 +456,7 @@ function render() {
     ctx.restore();
   }
 
-  if (STARTED)
+  if (game.started)
   {
     physics();
   }
@@ -457,30 +466,30 @@ function render() {
 }
 
 function physics() {
-  player.updatePhysics();
-  score += Math.round(player.v / 100);
-  for (var x = player.x - 10; x < player.x + 10; x++) {
-    if (player.y > world.height(x) - 20)
+  game.player.updatePhysics();
+  game.score += Math.round(game.player.v / 100);
+  for (var x = game.player.x - 10; x < game.player.x + 10; x++) {
+    if (game.player.y > game.world.height(x) - 20)
     {
-      if (world.coins[Math.round(x)] == C_COIN) {
-        score += 100;
-        world.coins[Math.round(x)] = C_NONE;
+      if (game.world.coins[Math.round(x)] == C_COIN) {
+        game.score += 100;
+        game.world.coins[Math.round(x)] = C_NONE;
         playCoinSound();
-      } else if (world.coins[Math.round(x)] == C_BOOSTER) {
-        score += 100;
-        world.coins[Math.round(x)] = C_NONE;
-        player.v += 300;
+      } else if (game.world.coins[Math.round(x)] == C_BOOSTER) {
+        game.score += 100;
+        game.world.coins[Math.round(x)] = C_NONE;
+        game.player.v += 300;
         playCoinSound();
       }
     }
   }
-  if (player.x > world.endpoint) {
+  if (game.player.x > game.world.endpoint) {
     finish();
   }
 }
 
 function playCoinSound() {
-  var i = Math.round((player.v / 1500) * 10);
+  var i = Math.round((game.player.v / 1500) * 10);
   if (i < 0)
     i = 0;
   if (i > 8)
