@@ -135,10 +135,27 @@ var TinyWigs = {
     },
 
     draw: function(ctx, camera) {
+      // distant land
+      var startX = (camera.x / 4) + 200;
+      var endX = startX + WIDTH + 240;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(-1, HEIGHT);
+      for(var x = startX; x < endX; x+= 20) {
+        var height = this.height(LENGTH - x);
+        ctx.lineTo(x - 220 - (camera.x / 4), height - (camera.y + 10));
+      }
+      ctx.lineTo(WIDTH + 1, HEIGHT);
+      ctx.strokeStyle = 'rgba(0, 255, 0, 0.5);';
+      ctx.stroke();
+      ctx.restore();
+
       // draw land
       var startX = camera.x - 20;
       var endX = camera.x + WIDTH + 20;
 
+      ctx.save();
       ctx.beginPath();
       ctx.moveTo(-1, HEIGHT);
       for(var x = startX; x < endX; x+= 20) {
@@ -147,11 +164,9 @@ var TinyWigs = {
       }
       ctx.lineTo(WIDTH + 1, HEIGHT);
       ctx.closePath();
-      ctx.save();
+      ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+      ctx.fill();
       ctx.strokeStyle = 'rgba(0, 255, 0, 1);';
-      ctx.stroke();
-      ctx.stroke();
-      ctx.stroke();
       ctx.stroke();
       ctx.stroke();
       ctx.restore();
@@ -384,7 +399,7 @@ var TinyWigs = {
       var end = new Date().getTime();
 
       if (this.live) {
-        var timeout = 250;
+        var timeout = 50;
         if (this.running)
         {
           timeout = 16 - (end - start);
