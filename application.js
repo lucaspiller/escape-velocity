@@ -371,9 +371,6 @@ var TinyWigs = {
     },
 
     physics: function() {
-      if (gravity == LOW_GRAVITY) {
-        this.player.fuel -= FUEL_AMOUNT;
-      }
 
       this.player.updatePhysics();
       this.score += Math.round(this.player.v / 100);
@@ -394,8 +391,20 @@ var TinyWigs = {
         }
       }
 
+      if (gravity == LOW_GRAVITY) {
+        this.player.fuel -= FUEL_AMOUNT;
+      }
+
+      if (this.player.fuel <= 0) {
+        return gameOverOutOfFuel();
+      }
+
       if (this.player.x > this.world.endpoint) {
-        finish();
+        return gameOverOutOfLand();
+      }
+
+      if (this.player.y < -500) {
+        return gameWin();
       }
     }
   })
@@ -435,7 +444,7 @@ function init() {
     }
     stopHeavy();
   });
-  $('#retry-button').bind("click", function() {
+  $('.retry-button').bind("click", function() {
     resetGame(game.world.tag);
     return false;
   });
@@ -489,7 +498,7 @@ function stopHeavy() {
 
 function resetGame(tag) {
   osds = new Array();
-  $('#tada').hide();
+  $('.message').hide();
   if (game != null)
     game.finalize();
   game = new TinyWigs.Game(tag);
@@ -500,7 +509,7 @@ function startGame() {
   game.start();
 }
 
-function finish() {
+function gameWin() {
   game.end();
   $('#tweet-cont').children().remove();
   var link = $( document.createElement('a') );
@@ -515,7 +524,17 @@ function finish() {
   var tweetButton = new twttr.TweetButton($(link).get(0));
   tweetButton.render();
   $('#score').text(game.score);
-  $('#tada').show();
+  $('#success').show();
+}
+
+function gameOverOutOfFuel() {
+  game.end();
+  $('#out-of-fuel').show();
+}
+
+function gameOverOutOfLand() {
+  game.end();
+  $('#out-of-land').show();
 }
 
 function playCoinSound() {

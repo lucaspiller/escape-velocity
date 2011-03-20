@@ -29,7 +29,7 @@
         font-size: 10px;
         color: #999;
       }
-      #tada {
+      .message {
         width: 400px;
         height: 200px;
         left: 400px;
@@ -49,7 +49,7 @@
   </head>
   <body>
     <div id="content">
-      <div id="tada" style="display: none">
+      <div id="success" class="message" style="display: none">
         <h1>That's it!</h1>
         <p>
         You scored
@@ -59,7 +59,26 @@
         <p id="tweet-cont">
         </p>
         <p>
-        <a href="#" id="retry-button">
+        <a href="#" class="retry-button">
+          Try again
+        </a>
+      </div>
+      <div id="out-of-land" class="message" style="display: none">
+        <h1>Game over!</h1>
+        <p>
+        You didn't make it this time, you ran out of land!
+        </p>
+        <a href="#" class="retry-button">
+          Try again
+        </a>
+      </div>
+
+      <div id="out-of-fuel" class="message" style="display: none">
+        <h1>Game over!</h1>
+        <p>
+        You didn't make it this time, you ran out of fuel!
+        </p>
+        <a href="#" class="retry-button">
           Try again
         </a>
       </div>
