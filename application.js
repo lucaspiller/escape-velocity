@@ -135,6 +135,7 @@ var TinyWigs = {
     },
 
     draw: function(ctx, camera) {
+      // draw land
       var startX = camera.x - 20;
       var endX = camera.x + WIDTH + 20;
 
@@ -146,23 +147,29 @@ var TinyWigs = {
       }
       ctx.lineTo(WIDTH + 1, HEIGHT);
       ctx.closePath();
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0, 255, 0, 1);';
       ctx.stroke();
+      ctx.stroke();
+      ctx.stroke();
+      ctx.stroke();
+      ctx.stroke();
+      ctx.restore();
 
+      // draw coins
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6);';
+      ctx.strokeStyle = 'rgba(0, 255, 0, 0.6);';
       for (var x = startX; x < endX; x++) {
         if (this.coins[Math.round(x)] == C_COIN) {
           var height = this.height(x) - 10;
-          ctx.beginPath();
-          ctx.arc(x - camera.x, height - camera.y, 5, 0, Math.PI*2, true);
-          ctx.closePath();
-          ctx.fill();
+          ctx.fillRect(x - camera.x - 3, height - camera.y - 3, 7, 7);
         } else if(this.coins[Math.round(x)] == C_BOOSTER) {
           var height = this.height(x) - 10;
-          ctx.beginPath();
-          ctx.arc(x - camera.x, height - camera.y, 5, 0, Math.PI*2, true);
-          ctx.closePath();
-          ctx.stroke();
+          ctx.strokeRect(x - camera.x - 3, height - camera.y - 3, 7, 7);
         }
       }
+      ctx.restore();
     },
 
     height: function(point) {
@@ -188,6 +195,8 @@ var TinyWigs = {
       this.angle = 0;
       this.v = 0;
       this.fuel = INITIAL_FUEL;
+      this.colours = new Array();
+      this.colours = ['rgba(255, 0, 0, 1);', 'rgba(255, 50, 0, 1);', 'rgba(255, 100, 0, 1);', 'rgba(255, 150, 0, 1)', 'rgba(255, 200, 0, 1);'];
     },
 
     updatePhysics: function() {
@@ -227,10 +236,32 @@ var TinyWigs = {
     },
 
     draw: function(ctx, camera) {
-      ctx.beginPath();
-      ctx.arc(this.x - camera.x, this.y - camera.y, 10, 0, Math.PI*2, true);
-      ctx.closePath();
-      ctx.fill();
+      ctx.save();
+      ctx.translate(this.x - camera.x, this.y - camera.y);
+      ctx.rotate(this.angle);
+      ctx.fillStyle = 'rgba(31, 203, 204, 1);';
+      ctx.fillRect(-9, -9, 5, 5);
+      ctx.fillRect(-9, 5, 5, 5);
+      ctx.fillRect(-3, -1, 7, 3);
+      if (gravity == LOW_GRAVITY)
+      {
+        for(var x = -16; x < -10; x+=2)
+        {
+
+          for(var y = -8; y < -5; y++)
+          {
+            ctx.fillStyle = this.colours[Math.round(Math.random() * (this.colours.length - 1))];
+            ctx.fillRect(x, y, 2, 1);
+          }
+
+          for(var y = 6; y < 9; y++)
+          {
+            ctx.fillStyle = this.colours[Math.round(Math.random() * (this.colours.length - 1))];
+            ctx.fillRect(x, y, 2, 1);
+          }
+        }
+      }
+      ctx.restore();
     }
   }),
 
@@ -275,7 +306,7 @@ var TinyWigs = {
 
       // render this.osds
       ctx.save();
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6);';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6);';
       ctx.font = "18px sans-serif";
       for(var i = this.osds.length - 1; i >= 0; i--)
       {
@@ -291,9 +322,10 @@ var TinyWigs = {
     },
 
     clear: function() {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8);';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8);';
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+      ctx.fillStyle = 'rgba(255, 255, 255, 1);';
+      ctx.strokeStyle = 'rgba(0, 255, 0, 1);';
     },
 
     createOSD: function(text) {
@@ -376,9 +408,9 @@ var TinyWigs = {
 
       if (!this.started) {
         ctx.save();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4);';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4);';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
-        ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+        ctx.fillStyle = 'rgba(255, 255, 255, 1);';
         ctx.font = "26px sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("Spacebar / Touch to Start", WIDTH / 2, HEIGHT / 5);
