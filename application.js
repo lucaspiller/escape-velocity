@@ -322,7 +322,12 @@ var TinyWigs = {
       this.started = true;
     },
 
-    end: function() {
+    endWin: function() {
+      this.score += Math.round((LENGTH - this.player.x) * 2.5);
+      this.started = false;
+    },
+
+    endFail: function() {
       this.started = false;
     },
 
@@ -332,14 +337,24 @@ var TinyWigs = {
     },
 
     loop: function() {
+      if (!this.live) {
+        return;
+      }
+
       var start = new Date().getTime();
       this.render();
       if (this.started)
         this.physics();
       var end = new Date().getTime();
 
-      if (this.live)
-        setTimeout(function(obj) { obj.loop(); }, 16 - (end - start), this);
+      if (this.live) {
+        var timeout = 250;
+        if (this.started)
+        {
+          timeout = 16 - (end - start);
+        }
+        setTimeout(function(obj) { obj.loop(); }, timeout, this);
+      }
     },
 
     render: function() {
@@ -371,7 +386,6 @@ var TinyWigs = {
     },
 
     physics: function() {
-
       this.player.updatePhysics();
       this.score += Math.round(this.player.v / 100);
       for (var x = this.player.x - 10; x < this.player.x + 10; x++) {
@@ -510,7 +524,7 @@ function startGame() {
 }
 
 function gameWin() {
-  game.end();
+  game.endWin();
   $('#tweet-cont').children().remove();
   var link = $( document.createElement('a') );
   link.attr("data-text", "I just scored " + game.score + " points on world " + game.world.tag + ".");
@@ -528,12 +542,12 @@ function gameWin() {
 }
 
 function gameOverOutOfFuel() {
-  game.end();
+  game.endFail();
   $('#out-of-fuel').show();
 }
 
 function gameOverOutOfLand() {
-  game.end();
+  game.endFail();
   $('#out-of-land').show();
 }
 
