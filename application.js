@@ -310,6 +310,7 @@ var TinyWigs = {
       this.live = true;
       this.score = 0;
       this.started = false;
+      this.running = false;
       this.world = new TinyWigs.WorldGenerator().generate(tag);
       this.player = new TinyWigs.Player(this.world, 50, 50, 30, -30);
       this.renderer = new TinyWigs.Renderer(ctx, this.player);
@@ -318,22 +319,25 @@ var TinyWigs = {
     },
 
     start: function() {
+      if (this.started) {
+        return;
+      }
       this.renderer.createOSD("Let's go!");
       this.started = true;
+      this.running = true;
     },
 
     endWin: function() {
       this.score += Math.round((LENGTH - this.player.x) * 2.5);
-      this.started = false;
+      this.running = false;
     },
 
     endFail: function() {
-      this.started = false;
+      this.running = false;
     },
 
     finalize: function() {
       this.live = false;
-
     },
 
     loop: function() {
@@ -343,13 +347,13 @@ var TinyWigs = {
 
       var start = new Date().getTime();
       this.render();
-      if (this.started)
+      if (this.running)
         this.physics();
       var end = new Date().getTime();
 
       if (this.live) {
         var timeout = 250;
-        if (this.started)
+        if (this.running)
         {
           timeout = 16 - (end - start);
         }
