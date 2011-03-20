@@ -10,6 +10,7 @@ var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
 var WORLD_TAG =  80041;
 var COIN_PROBABILITY = 0.5;
+var STAR_PROBABILITY = 0.1;
 var BOOSTER_PROBABILITY = 0.1;
 var INITIAL_FUEL = 1000;
 var FUEL_AMOUNT = 2.5;
@@ -125,6 +126,17 @@ var TinyWigs = {
       }
 
       world.sectionBoundaries = keypoints;
+
+      // generate stars
+      world.stars = new Array();
+      for(var x = 0; x < WIDTH; x+= 20) {
+        for(var y = 0; y < HEIGHT; y+= 20) {
+          if (world.rng.random() < STAR_PROBABILITY)
+          {
+            world.stars.push({x: x, y: y});
+          }
+        }
+      }
     }
   }),
 
@@ -135,6 +147,16 @@ var TinyWigs = {
     },
 
     draw: function(ctx, camera) {
+      // stars
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 1);';
+      for(var i = 0, l = this.stars.length; i < l; i++)
+      {
+        var star = this.stars[i];
+        ctx.fillRect(star.x, star.y, 1, 1);
+      }
+      ctx.restore();
+
       // distant land
       var startX = (camera.x / 4) + 200;
       var endX = startX + WIDTH + 240;
@@ -147,6 +169,8 @@ var TinyWigs = {
         ctx.lineTo(x - 220 - (camera.x / 4), height - (camera.y + 10));
       }
       ctx.lineTo(WIDTH + 1, HEIGHT);
+      ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+      ctx.fill();
       ctx.strokeStyle = 'rgba(0, 255, 0, 0.5);';
       ctx.stroke();
       ctx.restore();
