@@ -135,12 +135,12 @@ var TinyWigs = {
     },
 
     draw: function(ctx, camera) {
-      var startX = camera.x - 1;
-      var endX = camera.x + WIDTH + 2;
+      var startX = camera.x - 20;
+      var endX = camera.x + WIDTH + 20;
 
       ctx.beginPath();
       ctx.moveTo(-1, HEIGHT);
-      for(var x = startX; x < endX; x++) {
+      for(var x = startX; x < endX; x+= 20) {
         var height = this.height(x);
         ctx.lineTo(x - camera.x, height - camera.y);
       }
