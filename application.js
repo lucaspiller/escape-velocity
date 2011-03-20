@@ -197,8 +197,8 @@ var TinyWigs = {
 
       // draw coins
       ctx.save();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6);';
-      ctx.strokeStyle = 'rgba(0, 255, 0, 0.6);';
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.6);';
+      ctx.strokeStyle = 'rgba(255, 255, 0, 0.6);';
       for (var x = startX; x < endX; x++) {
         if (this.coins[Math.round(x)] == C_COIN) {
           var height = this.height(x) - 10;
@@ -343,9 +343,9 @@ var TinyWigs = {
         this.children[i].draw(this.ctx, this.camera);
       }
 
-      // render this.osds
+      // render osds
       ctx.save();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6);';
+      ctx.fillStyle = 'rgba(179, 86, 161, 1);';
       ctx.font = "18px sans-serif";
       for(var i = this.osds.length - 1; i >= 0; i--)
       {
@@ -364,7 +364,6 @@ var TinyWigs = {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.8);';
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
       ctx.fillStyle = 'rgba(255, 255, 255, 1);';
-      ctx.strokeStyle = 'rgba(0, 255, 0, 1);';
     },
 
     createOSD: function(text) {
