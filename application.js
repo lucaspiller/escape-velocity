@@ -1,7 +1,7 @@
 var WIDTH;
 var HEIGHT;
 var HIGH_GRAVITY = 25;
-var LOW_GRAVITY = 5;
+var LOW_GRAVITY = 3;
 var AMPLITUDE = 200;
 var MIN_WIDTH = 200;
 var MAX_WIDTH = 500;
@@ -11,6 +11,9 @@ var gravity = LOW_GRAVITY;
 var WORLD_TAG = 53775
 var COIN_PROBABILITY = 0.5;
 var BOOSTER_PROBABILITY = 0.1;
+var INITIAL_FUEL = 1000;
+var FUEL_AMOUNT = 2.5;
+var COIN_FUEL = 100;
 
 var C_NONE = 0;
 var C_COIN = 1;
@@ -184,6 +187,7 @@ var TinyWigs = {
       this.dy = dy;
       this.angle = 0;
       this.v = 0;
+      this.fuel = INITIAL_FUEL;
     },
 
     updatePhysics: function() {
@@ -335,6 +339,13 @@ var TinyWigs = {
 
       ctx.fillText(this.score, 25, HEIGHT - 25);
       ctx.fillText("World: " + this.world.tag, 75, HEIGHT - 25);
+      var height = this.player.y;
+      ctx.fillText(Math.round(height), 150, HEIGHT - 25);
+
+      var fuelWidth = (this.player.fuel / INITIAL_FUEL) * 200;
+      if (fuelWidth < 0)
+        fuelWidth = 0;
+      ctx.fillRect(200, HEIGHT - 35, fuelWidth, 10);
 
       if (!this.started) {
         ctx.save();
@@ -352,12 +363,17 @@ var TinyWigs = {
     },
 
     physics: function() {
+      if (gravity == LOW_GRAVITY) {
+        this.player.fuel -= FUEL_AMOUNT;
+      }
+
       this.player.updatePhysics();
       this.score += Math.round(this.player.v / 100);
       for (var x = this.player.x - 10; x < this.player.x + 10; x++) {
         if (this.player.y > this.world.height(x) - 20)
         {
           if (this.world.coins[Math.round(x)] == C_COIN) {
+            this.player.fuel += COIN_FUEL;
             this.score += 100;
             this.world.coins[Math.round(x)] = C_NONE;
             playCoinSound();
