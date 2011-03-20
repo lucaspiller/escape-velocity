@@ -436,14 +436,20 @@ var TinyWigs = {
       this.renderer.render();
 
       ctx.fillText(this.score, 25, HEIGHT - 25);
-      ctx.fillText("World: " + this.world.tag, 75, HEIGHT - 25);
-      var height = this.player.y;
-      ctx.fillText(Math.round(height), 150, HEIGHT - 25);
-
-      var fuelWidth = (this.player.fuel / INITIAL_FUEL) * 200;
-      if (fuelWidth < 0)
+      ctx.save();
+      var fuelWidth = (this.player.fuel / INITIAL_FUEL) * 255;
+      if (fuelWidth >= 255) {
+        ctx.fillStyle = 'rgba(0, 129, 255, 1);';
+      } else {
+        ctx.fillStyle = 'rgba(' + Math.round(255 - fuelWidth) + ', ' + Math.round(fuelWidth / 2) + ', ' + Math.round(fuelWidth) + ', 1);';
+      }
+      if (fuelWidth > 500) {
+        fuelWidth = 500;
+      } else if (fuelWidth < 0) {
         fuelWidth = 0;
-      ctx.fillRect(200, HEIGHT - 35, fuelWidth, 10);
+      }
+      ctx.fillRect(75, HEIGHT - 33, fuelWidth, 10);
+      ctx.restore();
 
       if (!this.started) {
         ctx.save();
