@@ -8,7 +8,7 @@ var MAX_WIDTH = 500;
 var SMOOTHNESS_AMPLITUDE = 0.2;
 var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
-var WORLD_TAG = 53775
+var WORLD_TAG =  80041;
 var COIN_PROBABILITY = 0.5;
 var BOOSTER_PROBABILITY = 0.1;
 var INITIAL_FUEL = 1000;
@@ -307,6 +307,7 @@ var TinyWigs = {
 
   Game: $.Class({
     init: function(tag) {
+      this.live = true;
       this.score = 0;
       this.started = false;
       this.world = new TinyWigs.WorldGenerator().generate(tag);
@@ -325,13 +326,20 @@ var TinyWigs = {
       this.started = false;
     },
 
+    finalize: function() {
+      this.live = false;
+
+    },
+
     loop: function() {
       var start = new Date().getTime();
       this.render();
       if (this.started)
         this.physics();
       var end = new Date().getTime();
-      setTimeout(function(obj) { obj.loop(); }, 16 - (end - start), this);
+
+      if (this.live)
+        setTimeout(function(obj) { obj.loop(); }, 16 - (end - start), this);
     },
 
     render: function() {
@@ -482,6 +490,8 @@ function stopHeavy() {
 function resetGame(tag) {
   osds = new Array();
   $('#tada').hide();
+  if (game != null)
+    game.finalize();
   game = new TinyWigs.Game(tag);
   game.loop();
 }
