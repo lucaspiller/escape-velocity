@@ -10,7 +10,7 @@ var LENGTH = 30000;
 var gravity = LOW_GRAVITY;
 var WORLD_TAG =  80041;
 var COIN_PROBABILITY = 0.5;
-var STAR_PROBABILITY = 0.1;
+var STAR_PROBABILITY = 0.05;
 var BOOSTER_PROBABILITY = 0.1;
 var INITIAL_FUEL = 1000;
 var FUEL_AMOUNT = 2.5;
@@ -129,8 +129,8 @@ var TinyWigs = {
 
       // generate stars
       world.stars = new Array();
-      for(var x = 0; x < WIDTH; x+= 20) {
-        for(var y = 0; y < HEIGHT; y+= 20) {
+      for(var x = 0; x < WIDTH; x+= Math.round(world.rng.random() * 20)) {
+        for(var y = 0; y < HEIGHT; y+= Math.round(world.rng.random() * 20)) {
           if (world.rng.random() < STAR_PROBABILITY)
           {
             world.stars.push({x: x, y: y});
