@@ -28,6 +28,49 @@ var TinyWigs = {
       return world;
     },
 
+    pointTo: function(world, section, x1, x2, target, last) {
+      // and how we get there
+      var a;
+      var shift;
+      a = (Math.abs(last) / 2) + (Math.abs(target) / 2);
+      if (target > last)
+      {
+        if (last < 0 && target < 0) {
+          a = Math.abs(last) - a;
+          shift = Math.abs(last) - a;
+        } else {
+          if (last > 0 && target > 0) {
+            a = (target - last) / 2;
+          }
+          shift = (a - Math.abs(target));
+        }
+      } else {
+        shift = -(a - Math.abs(target));
+        if (last < 0 && target < 0) {
+          a = -(Math.abs(last) - a);
+          shift = (Math.abs(last) + a);
+        } else if (last > 0 && target > 0) {
+          a = (last - target) / 2;
+          shift = -(Math.abs(target) + a);
+        }
+      }
+
+      // generate points between
+      for(var x = x1; x < x2; x++) {
+        var parts = x2 - x1;
+        var part = x - x1;
+        var t;
+        if (target > last)
+        {
+          t = (Math.PI / parts) * part;
+        } else {
+          t = ((Math.PI / parts) * part) + Math.PI;
+        }
+        world.points[x] = (Math.cos(t) * a) + shift;
+        world.section[x] = section;
+      }
+    },
+
     generateLandscape: function(world) {
       world.points = new Array();
       world.section = new Array();
@@ -56,55 +99,16 @@ var TinyWigs = {
           target = (world.rng.random() - 0.5) * 2;
         }
 
-        // and how we get there
-        var a;
-        var shift;
-        a = (Math.abs(last) / 2) + (Math.abs(target) / 2);
-        if (target > last)
-        {
-          if (last < 0 && target < 0) {
-            a = Math.abs(last) - a;
-            shift = Math.abs(last) - a;
-          } else {
-            if (last > 0 && target > 0) {
-              a = (target - last) / 2;
-            }
-            shift = (a - Math.abs(target));
-          }
-        } else {
-          shift = -(a - Math.abs(target));
-          if (last < 0 && target < 0) {
-            a = -(Math.abs(last) - a);
-            shift = (Math.abs(last) + a);
-          } else if (last > 0 && target > 0) {
-            a = (last - target) / 2;
-            shift = -(Math.abs(target) + a);
-          }
-        }
+        // generate points
+        this.pointTo(world, i, keypoints[i], keypoints[i+1], target, last);
 
-        // generate points between
-        for(var x = keypoints[i]; x < keypoints[i + 1]; x++) {
-          var parts = keypoints[i + 1] - keypoints[i];
-          var part = x - keypoints[i];
-          var t;
-          if (target > last)
-          {
-            t = (Math.PI / parts) * part;
-          } else {
-            t = ((Math.PI / parts) * part) + Math.PI;
-          }
-          world.points[x] = (Math.cos(t) * a) + shift;
-          world.section[x] = i;
-        }
         last = target;
       }
 
-      // extra padding at end so we don't get a steep dropoff
+      // drop off nicely
       world.endpoint = keypoints[keypoints.length - 1];
-      for (var x = world.endpoint; x < (world.endpoint + 10000); x++) {
-        world.points[x] = world.points[world.endpoint - 1];
-        world.section[x] = keypoints.length;
-      }
+      target = -1;
+      this.pointTo(world, keypoints.length, keypoints[keypoints.length - 2], world.endpoint, target, last);
 
       // generate coins
       for (var i = 0, l = keypoints.length; i < l; i++) {
@@ -160,7 +164,6 @@ var TinyWigs = {
       // distant land
       var startX = (camera.x / 4) + 200;
       var endX = startX + WIDTH + 240;
-
       ctx.save();
       ctx.beginPath();
       ctx.moveTo(-1, HEIGHT);
@@ -174,6 +177,20 @@ var TinyWigs = {
       ctx.strokeStyle = 'rgba(0, 255, 0, 0.5);';
       ctx.stroke();
       ctx.restore();
+
+      // lava
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(-1, HEIGHT + 1);
+      ctx.lineTo(-1, (HEIGHT - 40) - camera.y);
+      ctx.lineTo(WIDTH + 1, (HEIGHT - 40) - camera.y);
+      ctx.lineTo(WIDTH + 1, HEIGHT + 1);
+      ctx.fillStyle = 'rgba(0, 0, 0, 1);';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.5);';
+      ctx.stroke();
+      ctx.restore();
+
 
       // draw land
       var startX = camera.x - 20;
@@ -216,7 +233,7 @@ var TinyWigs = {
       if (rpoint in this.points)
         return (HEIGHT - 50 - (AMPLITUDE / 2)) + (this.points[rpoint] * (AMPLITUDE / 2));
       else
-        return HEIGHT;
+        return HEIGHT + 5;
     },
 
     angle: function(point) {
