@@ -329,7 +329,7 @@ var TinyWigs = {
 
       if (this.focus.y - this.camera.y < (HEIGHT / 10))
       {
-        this.camera.y -= ((HEIGHT / 10) - (this.focus.y - this.camera.y)) / 16;
+        this.camera.y -= ((HEIGHT / 10) - (this.focus.y - this.camera.y)) / 8;
       }
       else if (this.focus.y - this.camera.y > (HEIGHT / 10) && this.camera.y < 0)
       {
