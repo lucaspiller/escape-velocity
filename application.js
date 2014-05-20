@@ -472,12 +472,6 @@ var TinyWigs = {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4);';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.fillStyle = 'rgba(255, 255, 255, 1);';
-        ctx.font = "26px 'Courier New', Courier, serif";
-        ctx.textAlign = "center";
-        ctx.fillText("Spacebar / Touch to Start", WIDTH / 2, HEIGHT / 5);
-        ctx.font = "16px 'Courier New', Courier, serif";
-        ctx.textAlign = "center";
-        ctx.fillText("R for new world" , WIDTH / 2, (HEIGHT / 5) + 25);
         ctx.restore();
       }
     },
@@ -538,14 +532,7 @@ function init() {
   });
   $(document).keyup(function(evt) {
     if (evt.keyCode == 32) {
-      if (!game.started)
-      {
-        startGame();
-      }
       stopHeavy();
-    }
-    if (evt.keyCode == 82) {
-      resetGame(Math.round(Math.random() * 99999));
     }
   });
   $(document).bind("touchstart",function(event){
@@ -560,6 +547,21 @@ function init() {
   });
   $('.retry-button').bind("click", function() {
     resetGame(game.world.tag);
+    startGame();
+    return false;
+  });
+  $('.menu-button').bind("click", function() {
+    showMenu();
+    return false;
+  });
+  $('.start-button').bind("click", function() {
+    resetGame(game.world.tag);
+    startGame();
+    return false;
+  });
+  $('.world-button').bind("click", function() {
+    resetGame(Math.round(Math.random() * 99999));
+    showMenu();
     return false;
   });
   sounds = new Array();
@@ -569,6 +571,7 @@ function init() {
     sounds.push(sound);
   }
   resetGame(WORLD_TAG);
+  showMenu();
 }
 
 var perfect = false;
@@ -649,6 +652,11 @@ function gameOverOutOfFuel() {
 function gameOverOutOfLand() {
   game.endFail();
   $('#out-of-land').show();
+}
+
+function showMenu() {
+  $('.message').hide();
+  $('#menu').show();
 }
 
 function playCoinSound() {

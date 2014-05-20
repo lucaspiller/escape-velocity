@@ -38,6 +38,11 @@
       .message h1 {
         margin-top: 10px;
       }
+
+      .message a, .message a:hover, .message a:active, .message a:visited {
+        color: #fff;
+        font-size: 18px;
+      }
       #score {
         text-decoration: bold;
       }
@@ -48,35 +53,67 @@
       <div id="success" class="message" style="display: none">
         <h1>That's it!</h1>
         <p>
-        You scored
-        <span id="score">12345</span>
-        points!
+          You scored
+          <span id="score">12345</span>
+          points!
         </p>
         <p id="tweet-cont">
         </p>
         <p>
-        <a href="#" class="retry-button">
-          Try again
-        </a>
+          <a href="#" class="retry-button">
+            Try again
+          </a>
+        </p>
+        <p>
+          <a href="#" class="menu-button">
+            Main Menu
+          </a>
+        </p>
       </div>
       <div id="out-of-land" class="message" style="display: none">
         <h1>Game over!</h1>
         <p>
-        You didn't make it this time, you ran out of land!
+          You didn't make it this time, you ran out of land!
         </p>
-        <a href="#" class="retry-button">
-          Try again
-        </a>
+        <p>
+          <a href="#" class="retry-button">
+            Try again
+          </a>
+        </p>
+        <p>
+          <a href="#" class="menu-button">
+            Main Menu
+          </a>
+        </p>
       </div>
-
       <div id="out-of-fuel" class="message" style="display: none">
         <h1>Game over!</h1>
         <p>
-        You didn't make it this time, you ran out of fuel!
+          You didn't make it this time, you ran out of fuel!
         </p>
-        <a href="#" class="retry-button">
-          Try again
-        </a>
+        <p>
+          <a href="#" class="retry-button">
+            Try again
+          </a>
+        </p>
+        <p>
+          <a href="#" class="menu-button">
+            Main Menu
+          </a>
+        </p>
+      </div>
+      <div id="menu" class="message" style="display: none">
+        <h1>Escape Velocity</h1>
+        <p>
+          <a href="#" class="start-button">
+            Start
+          </a>
+        </p>
+        <p>
+          <a href="#" class="world-button">
+            New World
+          </a>
+        </p>
       </div>
       <canvas id="canvas" width="680" height="350" style="width: 100%; height: 100%"></canvas>
     </div>
