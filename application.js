@@ -628,18 +628,6 @@ function startGame() {
 
 function gameWin() {
   game.endWin();
-  $('#tweet-cont').children().remove();
-  var link = $( document.createElement('a') );
-  link.attr("data-text", "I just scored " + game.score + " points on world " + game.world.tag + ".");
-  link.attr("class", "twitter-share-button");
-  link.attr("href", "http://twitter.com/share");
-  link.attr("data-url", "http://bit.ly/fRgEdr");
-  link.attr("data-count", "none");
-  link.attr("data-via", "lucaspiller");
-  link.append("Tweet This");
-  $('#tweet-cont').append(link);
-  var tweetButton = new twttr.TweetButton($(link).get(0));
-  tweetButton.render();
   $('#score').text(game.score);
   $('#success').show();
 }
