@@ -528,6 +528,9 @@ function init() {
   ctx = $('#canvas')[0].getContext("2d");
   WIDTH = $('#canvas').width();
   HEIGHT = $('#canvas').height();
+
+  new AutoScaler($('#content').get(0), WIDTH, HEIGHT, 0.1);
+
   $(document).keydown(function(evt) {
     if (evt.keyCode == 32) {
       goHeavy();
