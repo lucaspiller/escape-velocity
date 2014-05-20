@@ -363,7 +363,7 @@ var TinyWigs = {
       // render osds
       ctx.save();
       ctx.fillStyle = 'rgba(179, 86, 161, 1);';
-      ctx.font = "18px sans-serif";
+      ctx.font = "18px 'Courier New', Courier, serif";
       for(var i = this.osds.length - 1; i >= 0; i--)
       {
         if ((this.osds[i].x - this.camera.x) < -100)
@@ -472,10 +472,10 @@ var TinyWigs = {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4);';
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         ctx.fillStyle = 'rgba(255, 255, 255, 1);';
-        ctx.font = "26px sans-serif";
+        ctx.font = "26px 'Courier New', Courier, serif";
         ctx.textAlign = "center";
         ctx.fillText("Spacebar / Touch to Start", WIDTH / 2, HEIGHT / 5);
-        ctx.font = "16px sans-serif";
+        ctx.font = "16px 'Courier New', Courier, serif";
         ctx.textAlign = "center";
         ctx.fillText("R for new world" , WIDTH / 2, (HEIGHT / 5) + 25);
         ctx.restore();
