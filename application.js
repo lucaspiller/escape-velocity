@@ -539,10 +539,6 @@ function init() {
     goHeavy();
   });
   $(document).bind("touchend",function(event){
-    if (!game.started)
-    {
-      startGame();
-    }
     stopHeavy();
   });
   $('.retry-button').bind("click", function() {
